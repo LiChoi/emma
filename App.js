@@ -176,7 +176,7 @@ class App extends Component {
     super(props);
     this.state = {
       realm: null,
-      message: "",
+      message: null,
       home: {
         render: true,
         createProfileComponent: {
@@ -229,29 +229,68 @@ class App extends Component {
         });
         break;
       case 'update birthday field':
-        let date = data + "T10:59:30Z" //When saved in this string format, will convert to utc with new date()
         this.setState(prevState => {
           let home = JSON.parse(JSON.stringify(prevState.home));
-          home.createProfileComponent.birthday = date;                                
+          home.createProfileComponent.birthday = data;                                
           return { home };                                
+        });
+        break;
+      case 'profile saved':
+        this.setState(prevState => {
+          let home = JSON.parse(JSON.stringify(prevState.home));
+          home.createProfileComponent.name = null;
+          home.createProfileComponent.birthday = null; 
+          home.createProfileComponent.render = false;                        
+          return { home: home, message: null };                                
         });
         break;
     }
   }
 
   updateRealm(instruction, state){
+    function validateDate(dateStr){
+      //YYYY-MM-DD
+      if (!dateStr || dateStr.length !== 10){
+        return false;
+      }
+      let year = /\d{4}/.test(dateStr.substring(0,4)) ? parseInt(dateStr.substring(0,4), 10) : "not a number";
+      let dash1 = dateStr.charAt(4);
+      let month = /\d{2}/.test(dateStr.substring(5,7)) ? parseInt(dateStr.substring(5,7), 10) : "not a number";
+      let dash2 = dateStr.charAt(7);
+      let day = /\d{2}/.test(dateStr.substring(5,7)) ? parseInt(dateStr.substring(8), 10) : "not a number";
+      if (dash1 !== "-" || dash2 !== "-" || year == "not a number" || month == "not a number" || day == "not a number" ){
+        return false;
+      }
+      if (day > 31 || month > 12 || ([4, 6, 9, 11].indexOf(month) > -1 && day > 30)){
+        return false;
+      }
+      if ((year%4 == 0 && month == 2 && day > 29) || (year%4 !== 0 && month == 2 && day > 28)){
+        return false;
+      }
+      return true;
+    }
+
     Realm.open({
       schema: [userSchema]
     }).then(realm => {
       realm.write(() => {
         switch(instruction){
           case 'save new profile':
-            let birthday = state.home.createProfileComponent.birthday? new Date(state.home.createProfileComponent.birthday) : null
-            let name = state.home.createProfileComponent.name? state.home.createProfileComponent.name : null
+            let validDate = validateDate(state.home.createProfileComponent.birthday);
+            let birthday = validDate ? new Date(state.home.createProfileComponent.birthday + "T10:59:30Z") : null;
+            let name = state.home.createProfileComponent.name? state.home.createProfileComponent.name : null;
+            if (!birthday || !name){
+              let message = "The following fields have been entered incorrectly: ";
+              message = !birthday ? message.concat("birthday (must be YYYY-MM-DD), ") : message;
+              message = !name ? message.concat("name (must not be empty), ") : message;
+              this.setState({message: message});
+              break; 
+            }
             realm.create('User', {
               name: name,
               birthday: birthday
             });
+            this.updateState('profile saved', this.state);
             break;
         }
       });
@@ -272,7 +311,7 @@ class App extends Component {
           {this.createProfile()}
           <Text>Name from state: {this.state.home.createProfileComponent.name}</Text>
           <Text>DOB from state: {this.state.home.createProfileComponent.birthday}</Text>
-          {this.displayBirthday()}
+          {/*this.displayBirthday()*/}
         </View>
       );
     }
@@ -311,13 +350,16 @@ class App extends Component {
         <View>
           <TextInput
             placeholder="Enter name"
-            onChangeText={(text) => {this.updateState('update new profile name field', text);}} 
+            onChangeText={(text) => {this.updateState('update new profile name field', text);}}
+            value={this.state.home.createProfileComponent.name} 
           />
           <TextInput
             placeholder="Birthday YYYY-MM-DD"
-            onChangeText={(text) => {this.updateState('update birthday field', text);}} 
+            onChangeText={(text) => {this.updateState('update birthday field', text);}}
+            value={this.state.home.createProfileComponent.birthday}  
           />
           <Button title="Submit" onPress={()=>{this.updateRealm('save new profile', this.state)}} />
+          <Text>{this.state.message}</Text>
         </View>
       );
     }
