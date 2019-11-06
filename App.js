@@ -178,15 +178,15 @@ class App extends Component {
       realm: null,
       message: null,
       home: {
-        render: true,
-        createProfileComponent: {
-          render: false,
-          name: null,
-          birthday: null,
-          allergies: null,
-          conditions: null,
-          medlist: null 
-        }
+        render: true
+      },
+      createProfileComponent: {
+        render: false,
+        name: null,
+        birthday: null,
+        allergies: null,
+        conditions: null,
+        medlist: null 
       },
       profile: {
         render: true,
@@ -216,9 +216,9 @@ class App extends Component {
     switch(instruction) {
       case 'render createProfile':
         this.setState(prevState => {
-          let home = JSON.parse(JSON.stringify(prevState.home));
-          home.createProfileComponent.render = true;                                
-          return { home };                                
+          let createProfileComponent = JSON.parse(JSON.stringify(prevState.createProfileComponent));
+          createProfileComponent.render = true;                                
+          return { createProfileComponent };                                
         });
         break;
       case 'update new profile name field':
