@@ -165,7 +165,7 @@ const userSchema = {
   properties: {
     name: 'string',
     birthday: 'date?',
-    allergies: 'string?',
+    allergies: 'string?[]',
     conditions: 'string?[]',
     medlist: 'string?[]'
   }
@@ -186,7 +186,11 @@ class App extends Component {
         birthday: null,
         allergies: null,
         conditions: null,
-        medlist: null 
+        medlist: null,
+        allergyListComponent: {
+          render: false,
+          list: [] 
+        } 
       },
       profile: {
         render: true,
@@ -196,11 +200,11 @@ class App extends Component {
       }
     };
     this.renderHome = this.renderHome.bind(this);
-    this.displayBirthday = this.displayBirthday.bind(this);
     this.loadProfiles = this.loadProfiles.bind(this);
     this.createProfile = this.createProfile.bind(this);
     this.updateState = this.updateState.bind(this);
     this.updateRealm = this.updateRealm.bind(this);
+    this.renderAllergyList = this.renderAllergyList.bind(this);
   }
 
   componentDidMount() {
@@ -217,32 +221,57 @@ class App extends Component {
       case 'render createProfile':
         this.setState(prevState => {
           let createProfileComponent = JSON.parse(JSON.stringify(prevState.createProfileComponent));
-          createProfileComponent.render = true;                                
-          return { createProfileComponent };                                
+          let home = JSON.parse(JSON.stringify(prevState.home));
+          createProfileComponent.render = true; 
+          home.render = false;                               
+          return { createProfileComponent: createProfileComponent, home: home };                                
         });
         break;
       case 'update new profile name field':
         this.setState(prevState => {
-          let home = JSON.parse(JSON.stringify(prevState.home));
-          home.createProfileComponent.name = data;                                
-          return { home };                                
+          let createProfileComponent = JSON.parse(JSON.stringify(prevState.createProfileComponent));
+          createProfileComponent.name = data;                                
+          return { createProfileComponent };                                
         });
         break;
       case 'update birthday field':
         this.setState(prevState => {
-          let home = JSON.parse(JSON.stringify(prevState.home));
-          home.createProfileComponent.birthday = data;                                
-          return { home };                                
+          let createProfileComponent = JSON.parse(JSON.stringify(prevState.createProfileComponent));
+          createProfileComponent.birthday = data;                                
+          return { createProfileComponent };                                
         });
         break;
       case 'profile saved':
         this.setState(prevState => {
+          let createProfileComponent = JSON.parse(JSON.stringify(prevState.createProfileComponent));
           let home = JSON.parse(JSON.stringify(prevState.home));
-          home.createProfileComponent.name = null;
-          home.createProfileComponent.birthday = null; 
-          home.createProfileComponent.render = false;                        
-          return { home: home, message: null };                                
+          createProfileComponent.name = null;
+          createProfileComponent.birthday = null; 
+          createProfileComponent.render = false;            
+          home.render = true;            
+          return { createProfileComponent: createProfileComponent, home: home, message: null };                                
         });
+        break;
+      case 'update allergy field':
+        this.setState(prevState => {
+          let createProfileComponent = JSON.parse(JSON.stringify(prevState.createProfileComponent));
+          createProfileComponent.allergies = data;                                
+          return { createProfileComponent };                                
+        });
+        break;  
+      case 'add allergy':
+        let spacesOnly = /\s/.test(data.createProfileComponent.allergies);
+        if (data.createProfileComponent.allergies && !spacesOnly){
+          this.setState(prevState => {
+            let createProfileComponent = JSON.parse(JSON.stringify(prevState.createProfileComponent));
+            createProfileComponent.allergyListComponent.render = true;
+            createProfileComponent.allergyListComponent.list.push(prevState.createProfileComponent.allergies);
+            createProfileComponent.allergies = null;                      
+            return { createProfileComponent: createProfileComponent, message: null };                                
+          });
+        } else {
+          this.setState({message: "Cannot be empty and no spaces allowed"});
+        }
         break;
     }
   }
@@ -276,9 +305,10 @@ class App extends Component {
       realm.write(() => {
         switch(instruction){
           case 'save new profile':
-            let validDate = validateDate(state.home.createProfileComponent.birthday);
-            let birthday = validDate ? new Date(state.home.createProfileComponent.birthday + "T10:59:30Z") : null;
-            let name = state.home.createProfileComponent.name? state.home.createProfileComponent.name : null;
+            let validDate = validateDate(state.createProfileComponent.birthday);
+            let birthday = validDate ? new Date(state.createProfileComponent.birthday + "T10:59:30Z") : null;
+            let name = state.createProfileComponent.name? state.createProfileComponent.name : null;
+            let allergies = state.createProfileComponent.allergyListComponent.list.length > 0 ? state.createProfileComponent.allergyListComponent.list : []; 
             if (!birthday || !name){
               let message = "The following fields have been entered incorrectly: ";
               message = !birthday ? message.concat("birthday (must be YYYY-MM-DD), ") : message;
@@ -288,7 +318,8 @@ class App extends Component {
             }
             realm.create('User', {
               name: name,
-              birthday: birthday
+              birthday: birthday,
+              allergies: allergies
             });
             this.updateState('profile saved', this.state);
             break;
@@ -308,10 +339,6 @@ class App extends Component {
           {this.loadProfiles()}
           <Text>Create new profile</Text>
           <Button title="new" onPress={()=>{this.updateState('render createProfile')}} />
-          {this.createProfile()}
-          <Text>Name from state: {this.state.home.createProfileComponent.name}</Text>
-          <Text>DOB from state: {this.state.home.createProfileComponent.birthday}</Text>
-          {/*this.displayBirthday()*/}
         </View>
       );
     }
@@ -343,21 +370,30 @@ class App extends Component {
       );
     }
   }
+  //End of Home and its subcomponent functions 
 
+  //Beginning of createProfileComponent and all its subcomponenets 
   createProfile() {
-    if (this.state.home.createProfileComponent.render){
+    if (this.state.createProfileComponent.render){
       return (
         <View>
           <TextInput
             placeholder="Enter name"
             onChangeText={(text) => {this.updateState('update new profile name field', text);}}
-            value={this.state.home.createProfileComponent.name} 
+            value={this.state.createProfileComponent.name} 
           />
           <TextInput
             placeholder="Birthday YYYY-MM-DD"
             onChangeText={(text) => {this.updateState('update birthday field', text);}}
-            value={this.state.home.createProfileComponent.birthday}  
+            value={this.state.createProfileComponent.birthday}  
           />
+          <TextInput 
+            placeholder='Allergies'
+            onChangeText={(text) => {this.updateState('update allergy field', text);}}
+            value={this.state.createProfileComponent.allergies} 
+          />
+          <Button title='Add allergy' onPress={()=>{this.updateState('add allergy', this.state)}} />
+          {this.renderAllergyList()}
           <Button title="Submit" onPress={()=>{this.updateRealm('save new profile', this.state)}} />
           <Text>{this.state.message}</Text>
         </View>
@@ -365,22 +401,28 @@ class App extends Component {
     }
   }
 
-  displayBirthday() { //Just to verify birthday is being saved correctly, delete when no longer needed
-    if (this.state.realm){
+  renderAllergyList() {
+    if (this.state.createProfileComponent.allergyListComponent.render){
       return (
         <View>
-          <Text>{this.state.realm.objects('User')[9].name}</Text>
-          <Text>{this.state.realm.objects('User')[9].birthday.toString()}</Text>
+          {
+            this.state.createProfileComponent.allergyListComponent.list.map((allergy, i)=>{
+              return (
+                <Text key={allergy + i}>{allergy}</Text>
+              );
+            })
+          }
         </View>
       );
     }
   }
-  //End of Home and its subcomponent functions 
+  //End of createProfileComponent
 
   render() {
     return (
       <ScrollView style={styles.appContainer}>
         {this.renderHome()}
+        {this.createProfile()}
       </ScrollView>
     );
   }
