@@ -177,6 +177,7 @@ class App extends Component {
     this.state = {
       realm: null,
       message: null,
+      render: {home: true, createProfileComponent: false, allergyListComponent: false, profileComponent: false}, 
       home: {
         render: true
       },
@@ -192,12 +193,17 @@ class App extends Component {
           list: [] 
         } 
       },
-      profile: {
-        render: true,
-        subComponent: {
-          render: false
-        }
-      }
+      profileComponent: {
+        render: false,
+        currentProfile: null,
+        allergies: null,
+        conditions: null,
+        medlist: null,
+        allergyListComponent: {
+          render: false,
+          list: [] 
+        } 
+      },
     };
     this.renderHome = this.renderHome.bind(this);
     this.loadProfiles = this.loadProfiles.bind(this);
@@ -205,6 +211,7 @@ class App extends Component {
     this.updateState = this.updateState.bind(this);
     this.updateRealm = this.updateRealm.bind(this);
     this.renderAllergyList = this.renderAllergyList.bind(this);
+    this.renderProfile = this.renderProfile.bind(this);
   }
 
   componentDidMount() {
@@ -219,12 +226,11 @@ class App extends Component {
   updateState(instruction, data) {
     switch(instruction) {
       case 'render createProfile':
-        this.setState(prevState => {
-          let createProfileComponent = JSON.parse(JSON.stringify(prevState.createProfileComponent));
-          let home = JSON.parse(JSON.stringify(prevState.home));
-          createProfileComponent.render = true; 
-          home.render = false;                               
-          return { createProfileComponent: createProfileComponent, home: home };                                
+        this.setState(prevState => {                             
+          let render = JSON.parse(JSON.stringify(prevState.render));
+          render.home = false; 
+          render.createProfileComponent = true;                             
+          return {render}
         });
         break;
       case 'update new profile name field':
@@ -244,12 +250,12 @@ class App extends Component {
       case 'profile saved':
         this.setState(prevState => {
           let createProfileComponent = JSON.parse(JSON.stringify(prevState.createProfileComponent));
-          let home = JSON.parse(JSON.stringify(prevState.home));
           createProfileComponent.name = null;
           createProfileComponent.birthday = null; 
-          createProfileComponent.render = false;            
-          home.render = true;            
-          return { createProfileComponent: createProfileComponent, home: home, message: null };                                
+          let render = JSON.parse(JSON.stringify(prevState.render));  
+          render.home = true;       
+          render.createProfileComponent = false;
+          return { createProfileComponent: createProfileComponent, render: render, message: null };                              
         });
         break;
       case 'update allergy field':
@@ -264,15 +270,43 @@ class App extends Component {
         if (data.createProfileComponent.allergies && !spacesOnly){
           this.setState(prevState => {
             let createProfileComponent = JSON.parse(JSON.stringify(prevState.createProfileComponent));
-            createProfileComponent.allergyListComponent.render = true;
             createProfileComponent.allergyListComponent.list.push(prevState.createProfileComponent.allergies);
             createProfileComponent.allergies = null;                      
-            return { createProfileComponent: createProfileComponent, message: null };                                
+            let render = JSON.parse(JSON.stringify(prevState.render));
+            render.allergyListComponent = true;
+            return { createProfileComponent: createProfileComponent, render: render, message: null };                                
           });
         } else {
           this.setState({message: "Cannot be empty and no spaces allowed"});
         }
         break;
+      case 'render profile':
+        this.setState(prevState => {
+          let profileComponent = JSON.parse(JSON.stringify(prevState.profileComponent));
+          profileComponent.currentProfile = data;                               
+          let render = JSON.parse(JSON.stringify(prevState.render));
+          render.profileComponent = true;
+          render.home = false;
+          return { profileComponent: profileComponent, render: render };                                
+        });
+        break; 
+      case 'return home':
+        this.setState(prevState => {
+          let render = JSON.parse(JSON.stringify(prevState.render));
+          let createProfileComponent = JSON.parse(JSON.stringify(prevState.createProfileComponent));
+          Object.keys(render).map(function(key, index) {
+            switch(key){
+              case 'allergyListComponent': 
+                if(render[key] = true){
+                  createProfileComponent.allergyListComponent.list = [];
+                }
+                break;
+            }
+            key == 'home' ? render[key] = true : render[key] = false;
+          });
+          return { render: render, createProfileComponent: createProfileComponent };                                
+        });
+        break;  
     }
   }
 
@@ -332,7 +366,7 @@ class App extends Component {
 
   //The Home component and all subcomponent functions
   renderHome(){
-    if (this.state.home.render){
+    if (this.state.render.home){
       return (
         <View style={styles.home}>
           <Text>Select a profile</Text>
@@ -353,7 +387,7 @@ class App extends Component {
             {
               users.map((user, i)=>{
                 return(
-                  <Button key={"username "+i} title={user.name} />
+                  <Button key={"username "+i} title={user.name} onPress={()=>{this.updateState('render profile', user.name)}} />
                 );
               })
             }
@@ -374,7 +408,7 @@ class App extends Component {
 
   //Beginning of createProfileComponent and all its subcomponenets 
   createProfile() {
-    if (this.state.createProfileComponent.render){
+    if (this.state.render.createProfileComponent){
       return (
         <View>
           <TextInput
@@ -402,7 +436,7 @@ class App extends Component {
   }
 
   renderAllergyList() {
-    if (this.state.createProfileComponent.allergyListComponent.render){
+    if (this.state.render.allergyListComponent){
       return (
         <View>
           {
@@ -418,11 +452,27 @@ class App extends Component {
   }
   //End of createProfileComponent
 
+  //Beginning of profile componenent and its subcomponenets
+  renderProfile(){
+    if (this.state.render.profileComponent){
+      return (
+        <View>
+          <Text>{this.state.profileComponent.currentProfile}</Text>
+          <Text>{this.state.realm.objects('User').map((user, i)=>{if(user.name == this.state.profileComponent.currentProfile){return user.birthday.toString();}})}</Text>
+        </View>
+      );
+    }
+  }
+
+  //End of profile component and its subcomponenets
+
   render() {
     return (
       <ScrollView style={styles.appContainer}>
         {this.renderHome()}
         {this.createProfile()}
+        {this.renderProfile()}
+        <Button title="Home" onPress={()=>{this.updateState('return home')}} />
       </ScrollView>
     );
   }
