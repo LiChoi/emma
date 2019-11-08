@@ -178,11 +178,8 @@ class App extends Component {
       realm: null,
       message: null,
       render: {home: true, createProfileComponent: false, allergyListComponent: false, profileComponent: false}, 
-      home: {
-        render: true
-      },
+      home: {},
       createProfileComponent: {
-        render: false,
         name: null,
         birthday: null,
         allergies: null,
@@ -194,13 +191,11 @@ class App extends Component {
         } 
       },
       profileComponent: {
-        render: false,
         currentProfile: null,
         allergies: null,
         conditions: null,
         medlist: null,
         allergyListComponent: {
-          render: false,
           list: [] 
         } 
       },
