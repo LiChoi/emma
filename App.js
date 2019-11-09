@@ -161,15 +161,24 @@ const styles = StyleSheet.create({
 */
 
 const userSchema = {
-  name: 'User', 
+  name: 'User',
+  primaryKey: 'name', 
   properties: {
     name: 'string',
     birthday: 'date?',
     allergies: 'string?[]',
-    conditions: 'string?[]',
+    conditions: 'Condition[]',
     medlist: 'string?[]'
   }
-}
+};
+
+const conditionSchema = {
+  name: 'Condition',
+  properties: {
+    name: 'string',
+    detail: {type: 'string?', default: 'Edit details'}
+  }
+};
 
 class App extends Component {
   constructor(props) {
@@ -177,28 +186,18 @@ class App extends Component {
     this.state = {
       realm: null,
       message: null,
-      render: {home: true, createProfileComponent: false, allergyListComponent: false, profileComponent: false}, 
+      render: {home: true, createProfileComponent: false, profileComponent: false, editConditionDetails: false}, 
       home: {},
       createProfileComponent: {
         name: null,
-        birthday: null,
-        allergies: null,
-        conditions: null,
-        medlist: null,
-        allergyListComponent: {
-          render: false,
-          list: [] 
-        } 
+        birthday: null
       },
       profileComponent: {
         currentProfile: null,
-        allergies: null,
-        conditions: null,
-        medlist: null,
-        allergyListComponent: {
-          list: [] 
-        } 
-      },
+        allergyField: null,
+        conditionField: null,
+        conditionDetailsField: null
+      }
     };
     this.renderHome = this.renderHome.bind(this);
     this.loadProfiles = this.loadProfiles.bind(this);
@@ -207,18 +206,20 @@ class App extends Component {
     this.updateRealm = this.updateRealm.bind(this);
     this.renderAllergyList = this.renderAllergyList.bind(this);
     this.renderProfile = this.renderProfile.bind(this);
+    this.renderConditionList = this.renderConditionList.bind(this);
+    this.renderEditConditionDetails = this.renderEditConditionDetails.bind(this);
   }
 
   componentDidMount() {
     Realm.open({
-      schema: [userSchema]
+      schema: [userSchema, conditionSchema]
     }).then(realm => {
       this.setState({ realm });
     });
   }
 
   //State and Realm management functions 
-  updateState(instruction, data) {
+  async updateState(instruction, data) {
     switch(instruction) {
       case 'render createProfile':
         this.setState(prevState => {                             
@@ -255,21 +256,19 @@ class App extends Component {
         break;
       case 'update allergy field':
         this.setState(prevState => {
-          let createProfileComponent = JSON.parse(JSON.stringify(prevState.createProfileComponent));
-          createProfileComponent.allergies = data;                                
-          return { createProfileComponent };                                
+          let profileComponent = JSON.parse(JSON.stringify(prevState.profileComponent));
+          profileComponent.allergyField = data;                                
+          return { profileComponent };                                
         });
         break;  
       case 'add allergy':
-        let spacesOnly = /\s/.test(data.createProfileComponent.allergies);
-        if (data.createProfileComponent.allergies && !spacesOnly){
+        let spacesOnly = /\s/.test(data.profileComponent.allergyField);
+        if (data.profileComponent.allergyField && !spacesOnly){
+          await this.updateRealm('add allergy', this.state); //This must be done before allergyField is cleared
           this.setState(prevState => {
-            let createProfileComponent = JSON.parse(JSON.stringify(prevState.createProfileComponent));
-            createProfileComponent.allergyListComponent.list.push(prevState.createProfileComponent.allergies);
-            createProfileComponent.allergies = null;                      
-            let render = JSON.parse(JSON.stringify(prevState.render));
-            render.allergyListComponent = true;
-            return { createProfileComponent: createProfileComponent, render: render, message: null };                                
+            let profileComponent = JSON.parse(JSON.stringify(prevState.profileComponent));
+            profileComponent.allergyField = null;                      
+            return { profileComponent: profileComponent, message: null };                                
           });
         } else {
           this.setState({message: "Cannot be empty and no spaces allowed"});
@@ -285,6 +284,55 @@ class App extends Component {
           return { profileComponent: profileComponent, render: render };                                
         });
         break; 
+      case 'update conditionField':
+        this.setState(prevState => {
+          let profileComponent = JSON.parse(JSON.stringify(prevState.profileComponent));
+          profileComponent.conditionField = data;                                
+          return { profileComponent };                                
+        });
+        break;
+      case 'update conditionDetailsField':
+        this.setState(prevState => {
+          let profileComponent = JSON.parse(JSON.stringify(prevState.profileComponent));
+          profileComponent.conditionDetailsField = data;                                
+          return { profileComponent };                                
+        });
+        break;
+      case 'add condition':
+        let textExists = /\S/.test(data.profileComponent.conditionField);
+        if (textExists){
+          await this.updateRealm('add condition', this.state); 
+          this.setState(prevState => {
+            let profileComponent = JSON.parse(JSON.stringify(prevState.profileComponent));
+            profileComponent.conditionField = null;                                
+            return { profileComponent };                                
+          });
+        } else {
+          this.setState({message: "Cannot be empty"});
+        }
+        break;
+      case 'render editConditionDetails':
+        this.setState(prevState => {
+          let render = JSON.parse(JSON.stringify(prevState.render));
+          render.editConditionDetails = data.name;
+          let profileComponent = JSON.parse(JSON.stringify(prevState.profileComponent));
+          profileComponent.conditionDetailsField = data.detail;
+          return { render: render, profileComponent: profileComponent };                               
+        });
+        break;
+      case 'save condition details':
+        let textExists2 = /\S/.test(this.state.profileComponent.conditionDetailsField);
+        if (textExists2){
+          await this.updateRealm('save condition details', this.state, data); //This must be done before allergyField is cleared
+          this.setState(prevState => {
+            let render = JSON.parse(JSON.stringify(prevState.render));
+            render.editConditionDetails = false;                  
+            return { render };                                
+          });
+        } else {
+          this.setState({message: "Cannot be empty"});
+        }
+        break;
       case 'return home':
         this.setState(prevState => {
           let render = JSON.parse(JSON.stringify(prevState.render));
@@ -305,31 +353,24 @@ class App extends Component {
     }
   }
 
-  updateRealm(instruction, state){
+  updateRealm(instruction, state, data){
     function validateDate(dateStr){
       //YYYY-MM-DD
-      if (!dateStr || dateStr.length !== 10){
-        return false;
-      }
+      if (!dateStr || dateStr.length !== 10){ return false; }
       let year = /\d{4}/.test(dateStr.substring(0,4)) ? parseInt(dateStr.substring(0,4), 10) : "not a number";
       let dash1 = dateStr.charAt(4);
       let month = /\d{2}/.test(dateStr.substring(5,7)) ? parseInt(dateStr.substring(5,7), 10) : "not a number";
       let dash2 = dateStr.charAt(7);
       let day = /\d{2}/.test(dateStr.substring(5,7)) ? parseInt(dateStr.substring(8), 10) : "not a number";
-      if (dash1 !== "-" || dash2 !== "-" || year == "not a number" || month == "not a number" || day == "not a number" ){
-        return false;
-      }
-      if (day > 31 || month > 12 || ([4, 6, 9, 11].indexOf(month) > -1 && day > 30)){
-        return false;
-      }
-      if ((year%4 == 0 && month == 2 && day > 29) || (year%4 !== 0 && month == 2 && day > 28)){
-        return false;
-      }
+      if (dash1 !== "-" || dash2 !== "-" || year == "not a number" || month == "not a number" || day == "not a number" ){ return false; }
+      if (day < 1 || month < 1){ return false; }
+      if (day > 31 || month > 12 || ([4, 6, 9, 11].indexOf(month) > -1 && day > 30)){ return false; }
+      if ((year%4 == 0 && month == 2 && day > 29) || (year%4 !== 0 && month == 2 && day > 28)){ return false; }
       return true;
     }
 
     Realm.open({
-      schema: [userSchema]
+      schema: [ userSchema, conditionSchema ]
     }).then(realm => {
       realm.write(() => {
         switch(instruction){
@@ -337,7 +378,6 @@ class App extends Component {
             let validDate = validateDate(state.createProfileComponent.birthday);
             let birthday = validDate ? new Date(state.createProfileComponent.birthday + "T10:59:30Z") : null;
             let name = state.createProfileComponent.name? state.createProfileComponent.name : null;
-            let allergies = state.createProfileComponent.allergyListComponent.list.length > 0 ? state.createProfileComponent.allergyListComponent.list : []; 
             if (!birthday || !name){
               let message = "The following fields have been entered incorrectly: ";
               message = !birthday ? message.concat("birthday (must be YYYY-MM-DD), ") : message;
@@ -347,10 +387,30 @@ class App extends Component {
             }
             realm.create('User', {
               name: name,
-              birthday: birthday,
-              allergies: allergies
+              birthday: birthday
             });
             this.updateState('profile saved', this.state);
+            break;
+          case 'add allergy':
+            let allergyList = this.state.realm.objects('User').filtered(`name='${this.state.profileComponent.currentProfile}'`)[0].allergies;
+            allergyList.push(this.state.profileComponent.allergyField);
+            realm.create('User', {name: this.state.profileComponent.currentProfile, allergies: allergyList}, true);
+            break;
+          case 'add condition':
+            let conditionList = this.state.realm.objects('User').filtered(`name='${this.state.profileComponent.currentProfile}'`)[0].conditions;
+            conditionList.push({name: this.state.profileComponent.conditionField});
+            realm.create('User', {name: this.state.profileComponent.currentProfile, conditions: conditionList}, true);
+            break;
+          case 'save condition details':
+            let conditionList2 = this.state.realm.objects('User').filtered(`name='${this.state.profileComponent.currentProfile}'`)[0].conditions;
+            conditionList2 = conditionList2.map((condition, i)=>{
+              if (condition.name == data){
+                return {name: data, detail: this.state.profileComponent.conditionDetailsField};
+              } else {
+                return condition; 
+              }
+            });
+            realm.create('User', {name: this.state.profileComponent.currentProfile, conditions: conditionList2}, true);
             break;
         }
       });
@@ -416,31 +476,7 @@ class App extends Component {
             onChangeText={(text) => {this.updateState('update birthday field', text);}}
             value={this.state.createProfileComponent.birthday}  
           />
-          <TextInput 
-            placeholder='Allergies'
-            onChangeText={(text) => {this.updateState('update allergy field', text);}}
-            value={this.state.createProfileComponent.allergies} 
-          />
-          <Button title='Add allergy' onPress={()=>{this.updateState('add allergy', this.state)}} />
-          {this.renderAllergyList()}
           <Button title="Submit" onPress={()=>{this.updateRealm('save new profile', this.state)}} />
-          <Text>{this.state.message}</Text>
-        </View>
-      );
-    }
-  }
-
-  renderAllergyList() {
-    if (this.state.render.allergyListComponent){
-      return (
-        <View>
-          {
-            this.state.createProfileComponent.allergyListComponent.list.map((allergy, i)=>{
-              return (
-                <Text key={allergy + i}>{allergy}</Text>
-              );
-            })
-          }
         </View>
       );
     }
@@ -452,13 +488,86 @@ class App extends Component {
     if (this.state.render.profileComponent){
       return (
         <View>
+          <Text>Name:</Text>
           <Text>{this.state.profileComponent.currentProfile}</Text>
+          <Text>Birthday:</Text>
           <Text>{this.state.realm.objects('User').map((user, i)=>{if(user.name == this.state.profileComponent.currentProfile){return user.birthday.toString();}})}</Text>
+          <Text>Allergies:</Text>
+          {this.renderAllergyList()}
+          <TextInput 
+            placeholder='Enter new allergy'
+            onChangeText={(text) => {this.updateState('update allergy field', text);}}
+            value={this.state.profileComponent.allergyField} 
+          />
+          <Button title='Add allergy' onPress={()=>{this.updateState('add allergy', this.state)}} />
+          <Text>Medical Conditions:</Text>
+          {this.renderConditionList()}
+          <TextInput 
+            placeholder='Enter a condition'
+            onChangeText={(text) => {this.updateState('update conditionField', text);}}
+            value={this.state.profileComponent.conditionField} 
+          />
+          <Button title='Add condition' onPress={()=>{this.updateState('add condition', this.state)}} />
+          <Text>Medications:</Text>
         </View>
       );
     }
   }
 
+  renderAllergyList() {
+    return (
+      <View>
+        {
+          this.state.realm.objects('User').filtered(`name='${this.state.profileComponent.currentProfile}'`)[0].allergies.map((allergy, i)=>{
+            return (
+              <View>
+                <Text key={allergy + i}>{allergy}</Text>
+              </View>
+            );
+          })
+        }
+      </View>
+    );
+  }
+
+  renderConditionList(){
+    return (
+      <View>
+        {
+          this.state.realm.objects('User').filtered(`name='${this.state.profileComponent.currentProfile}'`)[0].conditions.map((condition, i)=>{
+            return (
+              <View>
+                <Text key={condition.name + i}>Condition: {condition.name}</Text>
+                <Text>Details: {condition.detail}</Text>
+                {this.renderEditConditionDetails(condition)}
+              </View>
+            );
+          })
+        }
+      </View>
+    );
+  }
+
+  renderEditConditionDetails(condition){
+    if (this.state.render.editConditionDetails !== condition.name){
+      return (
+        <View>
+          <Button title='Edit Details' onPress={()=>{this.updateState('render editConditionDetails', condition)}} />
+        </View>
+      );
+    } else {
+      return (
+        <View>
+          <TextInput 
+            placeholder={condition.detail}
+            onChangeText={(text) => {this.updateState('update conditionDetailsField', text);}}
+            value={this.state.profileComponent.conditionDetailsField} 
+          />
+          <Button title='Save Details' onPress={()=>{this.updateState('save condition details', condition.name)}} />
+        </View>
+      );
+    }
+  }
   //End of profile component and its subcomponenets
 
   render() {
@@ -468,6 +577,7 @@ class App extends Component {
         {this.createProfile()}
         {this.renderProfile()}
         <Button title="Home" onPress={()=>{this.updateState('return home')}} />
+        <Text>{this.state.message}</Text>
       </ScrollView>
     );
   }
