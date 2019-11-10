@@ -168,7 +168,7 @@ const userSchema = {
     birthday: 'date?',
     allergies: 'Allergy[]',
     conditions: 'Condition[]',
-    medlist: 'string?[]'
+    medlist: 'Medication[]'
   }
 };
 
@@ -188,14 +188,29 @@ const allergySchema = {
   }
 };
 
+const medicationSchema = {
+  name: 'Medication',
+  properties: {
+    tradeName: 'string',
+    chemicalName: 'string?',
+    strength: 'int?',
+    unit: 'string?',
+    directions: 'string?',
+    purpose: 'string?',
+    prescriber: 'string?',
+    notes: 'string?'
+  }
+};
+
+const schemas = [userSchema, conditionSchema, allergySchema, medicationSchema];
+
 class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
       realm: null,
       message: null,
-      render: {home: true, createProfileComponent: false, profileComponent: false, editAllergyDetails: false, editConditionDetails: false}, 
-      home: {},
+      render: {home: true, createProfileComponent: false, profileComponent: false, editAllergyDetails: false, editConditionDetails: false, editMedication: false}, 
       createProfileComponent: {
         name: null,
         birthday: null
@@ -206,6 +221,17 @@ class App extends Component {
         allergynDetailsField: null,
         conditionField: null,
         conditionDetailsField: null
+      },
+      medlistComponent: {
+        medicationField: null,
+        tradeNameField: null,
+        chemicalNameField: null,
+        strengthField: null,
+        unitField: null,
+        directionsField: null,
+        purposeField: null,
+        prescriberField: null,
+        notesField: null
       }
     };
     this.renderHome = this.renderHome.bind(this);
@@ -218,11 +244,13 @@ class App extends Component {
     this.renderConditionList = this.renderConditionList.bind(this);
     this.renderEditConditionDetails = this.renderEditConditionDetails.bind(this);
     this.renderEditAllergyDetails = this.renderEditAllergyDetails.bind(this);
+    this.renderMedlist = this.renderMedlist.bind(this);
+    this.toggleEditMedication = this.toggleEditMedication.bind(this);
   }
 
   componentDidMount() {
     Realm.open({
-      schema: [userSchema, conditionSchema, allergySchema]
+      schema: schemas
     }).then(realm => {
       this.setState({ realm });
     });
@@ -239,20 +267,6 @@ class App extends Component {
           return {render}
         });
         break;
-      case 'update new profile name field':
-        this.setState(prevState => {
-          let createProfileComponent = JSON.parse(JSON.stringify(prevState.createProfileComponent));
-          createProfileComponent.name = data;                                
-          return { createProfileComponent };                                
-        });
-        break;
-      case 'update birthday field':
-        this.setState(prevState => {
-          let createProfileComponent = JSON.parse(JSON.stringify(prevState.createProfileComponent));
-          createProfileComponent.birthday = data;                                
-          return { createProfileComponent };                                
-        });
-        break;
       case 'profile saved':
         this.setState(prevState => {
           let createProfileComponent = JSON.parse(JSON.stringify(prevState.createProfileComponent));
@@ -264,13 +278,6 @@ class App extends Component {
           return { createProfileComponent: createProfileComponent, render: render, message: null };                              
         });
         break;
-      case 'update allergy field':
-        this.setState(prevState => {
-          let profileComponent = JSON.parse(JSON.stringify(prevState.profileComponent));
-          profileComponent.allergyField = data;                                
-          return { profileComponent };                                
-        });
-        break;  
       case 'add allergy':
         let spacesOnly = /\s/.test(data.profileComponent.allergyField);
         if (data.profileComponent.allergyField && !spacesOnly){
@@ -293,13 +300,6 @@ class App extends Component {
           return { render: render, profileComponent: profileComponent };                               
         });
         break;
-      case 'update allergyDetailsField':
-        this.setState(prevState => {
-          let profileComponent = JSON.parse(JSON.stringify(prevState.profileComponent));
-          profileComponent.allergyDetailsField = data;                                
-          return { profileComponent };                                
-        });
-        break;
       case 'save allergy details':
         let textExists3= /\S/.test(this.state.profileComponent.allergyDetailsField);
         if (textExists3){
@@ -318,28 +318,14 @@ class App extends Component {
           let profileComponent = JSON.parse(JSON.stringify(prevState.profileComponent));
           profileComponent.currentProfile = data;                               
           let render = JSON.parse(JSON.stringify(prevState.render));
-          render.profileComponent = true;
+          render.profileComponent = "overview";
           render.home = false;
           return { profileComponent: profileComponent, render: render };                                
         });
         break; 
-      case 'update conditionField':
-        this.setState(prevState => {
-          let profileComponent = JSON.parse(JSON.stringify(prevState.profileComponent));
-          profileComponent.conditionField = data;                                
-          return { profileComponent };                                
-        });
-        break;
-      case 'update conditionDetailsField':
-        this.setState(prevState => {
-          let profileComponent = JSON.parse(JSON.stringify(prevState.profileComponent));
-          profileComponent.conditionDetailsField = data;                                
-          return { profileComponent };                                
-        });
-        break;
       case 'add condition':
         let textExists = /\S/.test(data.profileComponent.conditionField);
-        if (textExists){
+        if (textExists && data.profileComponent.conditionField){
           await this.updateRealm('add condition', this.state); 
           this.setState(prevState => {
             let profileComponent = JSON.parse(JSON.stringify(prevState.profileComponent));
@@ -371,6 +357,77 @@ class App extends Component {
         } else {
           this.setState({message: "Cannot be empty"});
         }
+        break;
+      case 'render medlist':
+        this.setState(prevState => {                             
+          let render = JSON.parse(JSON.stringify(prevState.render));
+          render.profileComponent = "medlist";
+          return { render };                                
+        });
+        break; 
+      case 'add medication':
+          let textExists4 = /\S/.test(this.state.medlistComponent.medicationField);
+          if (textExists4 && this.state.medlistComponent.medicationField){
+            await this.updateRealm('add medication', this.state); 
+            this.setState(prevState => {
+              let medlistComponent = JSON.parse(JSON.stringify(prevState.medlistComponent));
+              medlistComponent.medicationField = null;                                
+              return { medlistComponent };                                
+            });
+          } else {
+            this.setState({message: "Cannot be empty"});
+          }
+          break;
+      case 'toggleEditMedication':
+        this.setState(prevState => {                             
+          let render = JSON.parse(JSON.stringify(prevState.render));
+          render.editMedication = data.tradeName;
+          let medlistComponent = JSON.parse(JSON.stringify(prevState.medlistComponent));
+          medlistComponent.tradeNameField = data.tradeName; 
+          medlistComponent.chemicalNameField = data.chemicalName; 
+          medlistComponent.strengthField = data.strength; 
+          medlistComponent.unitField = data.unit; 
+          medlistComponent.directionsField = data.directions; 
+          medlistComponent.purposeField = data.purpose; 
+          medlistComponent.prescriberField = data.prescriber; 
+          medlistComponent.notesField = data.notes
+          return { render: render, medlistComponent: medlistComponent };                                
+        });
+        break;     
+      case 'save medication':
+        let stateProp = data.stateProp;
+        let fields = data.fields;
+        let incorrectInputMessage = "";
+        console.log("fields: " + fields);
+        fields.forEach((field)=>{
+          if (/\S/.test(this.state[stateProp][field])){
+            incorrectInputMessage.concat(`${field} cannot be empty. `);
+          }
+        });
+        if (incorrectInputMessage == ""){
+          await this.updateRealm('save medication', this.state, data); 
+          this.setState(prevState => {
+            let render = JSON.parse(JSON.stringify(prevState.render));
+            render.editMedication = false;                  
+            return { render };                                
+          });
+        } else {
+          this.setState({message: incorrectInputMessage});
+        }
+        break;
+      case 'back to profile':
+        this.setState(prevState => {                             
+          let render = JSON.parse(JSON.stringify(prevState.render));
+          render.profileComponent = "overview";
+          return { render };                                
+        });
+        break; 
+      case 'update input field':
+        this.setState(prevState => {
+          let stateProp = JSON.parse(JSON.stringify(prevState[data.stateProp]));
+          stateProp[data.field] = data.text;                                
+          return { [data.stateProp]: stateProp };                                
+        });
         break;
       case 'return home':
         this.setState(prevState => {
@@ -409,7 +466,7 @@ class App extends Component {
     }
 
     Realm.open({
-      schema: [ userSchema, conditionSchema, allergySchema ]
+      schema: schemas
     }).then(realm => {
       realm.write(() => {
         switch(instruction){
@@ -462,6 +519,24 @@ class App extends Component {
             });
             realm.create('User', {name: this.state.profileComponent.currentProfile, allergies: allergyList2}, true);
             break;
+          case 'add medication':
+            let medlist = this.state.realm.objects('User').filtered(`name='${this.state.profileComponent.currentProfile}'`)[0].medlist;
+            medlist.push({tradeName: this.state.medlistComponent.medicationField});
+            realm.create('User', {name: this.state.profileComponent.currentProfile, medlist: medlist}, true);
+            break;
+          case 'save medication':
+            let medlist2 = this.state.realm.objects('User').filtered(`name='${this.state.profileComponent.currentProfile}'`)[0].medlist;
+            medlist2 = medlist2.map((medication, i)=>{
+              if (medication.tradeName == data.prevTradeName){
+                data.fields.forEach((field)=>{
+                  field == 'strengthField' ? medication[field.replace('Field', '')] = parseInt(this.state[data.stateProp][field], 10) : medication[field.replace('Field', '')] = this.state[data.stateProp][field];
+                });
+                return medication;
+              } else {
+                return medication; 
+              }
+            });
+            realm.create('User', {name: this.state.profileComponent.currentProfile, medlist: medlist2}, true);
         }
       });
       this.setState({ realm });
@@ -518,12 +593,12 @@ class App extends Component {
         <View>
           <TextInput
             placeholder="Enter name"
-            onChangeText={(text) => {this.updateState('update new profile name field', text);}}
+            onChangeText={(text) => {this.updateState('update input field', {stateProp: 'createProfileComponent', field: 'name', text: text});}}
             value={this.state.createProfileComponent.name} 
           />
           <TextInput
             placeholder="Birthday YYYY-MM-DD"
-            onChangeText={(text) => {this.updateState('update birthday field', text);}}
+            onChangeText={(text)=>{this.updateState('update input field', {stateProp: 'createProfileComponent', field: 'birthday', text: text })}}
             value={this.state.createProfileComponent.birthday}  
           />
           <Button title="Submit" onPress={()=>{this.updateRealm('save new profile', this.state)}} />
@@ -535,7 +610,7 @@ class App extends Component {
 
   //Beginning of profile componenent and its subcomponenets
   renderProfile(){
-    if (this.state.render.profileComponent){
+    if (this.state.render.profileComponent == 'overview'){
       return (
         <View>
           <Text>Name:</Text>
@@ -546,7 +621,7 @@ class App extends Component {
           {this.renderAllergyList()}
           <TextInput 
             placeholder='Enter new allergy'
-            onChangeText={(text) => {this.updateState('update allergy field', text);}}
+            onChangeText={(text)=>{this.updateState('update input field', {stateProp: 'profileComponent', field: 'allergyField', text: text })}}
             value={this.state.profileComponent.allergyField} 
           />
           <Button title='Add allergy' onPress={()=>{this.updateState('add allergy', this.state)}} />
@@ -554,11 +629,11 @@ class App extends Component {
           {this.renderConditionList()}
           <TextInput 
             placeholder='Enter a new condition'
-            onChangeText={(text) => {this.updateState('update conditionField', text);}}
+            onChangeText={(text)=>{this.updateState('update input field', {stateProp: 'profileComponent', field: 'conditionField', text: text })}}
             value={this.state.profileComponent.conditionField} 
           />
           <Button title='Add condition' onPress={()=>{this.updateState('add condition', this.state)}} />
-          <Text>Medications:</Text>
+          <Button title='View med list' onPress={()=>{this.updateState('render medlist'), this.state}} />
         </View>
       );
     }
@@ -594,7 +669,7 @@ class App extends Component {
         <View>
           <TextInput 
             placeholder="Enter details"
-            onChangeText={(text) => {this.updateState('update allergyDetailsField', text);}}
+            onChangeText={(text)=>{this.updateState('update input field', {stateProp: 'profileComponent', field: 'allergyDetailsField', text: text })}}
             value={this.state.profileComponent.allergyDetailsField} 
           />
           <Button title='Save Details' onPress={()=>{this.updateState('save allergy details', allergy.name)}} />
@@ -633,7 +708,7 @@ class App extends Component {
         <View>
           <TextInput 
             placeholder="Enter details"
-            onChangeText={(text) => {this.updateState('update conditionDetailsField', text);}}
+            onChangeText={(text)=>{this.updateState('update input field', {stateProp: 'profileComponent', field: 'conditionDetailsField', text: text })}}
             value={this.state.profileComponent.conditionDetailsField} 
           />
           <Button title='Save Details' onPress={()=>{this.updateState('save condition details', condition.name)}} />
@@ -643,12 +718,112 @@ class App extends Component {
   }
   //End of profile component and its subcomponenets
 
+  //Beginning of medlist component and its subcomponents
+  renderMedlist(){
+    if (this.state.render.profileComponent == 'medlist'){
+      return (
+        <View>
+          <Text>Medication List</Text>
+          {
+            this.state.realm.objects('User').filtered(`name='${this.state.profileComponent.currentProfile}'`)[0].medlist.map((medication, i)=>{
+              return (
+                <View key={medication.tradeName + i}>
+                  {this.toggleEditMedication(medication)}
+                </View>
+              );
+            })
+          }
+          <TextInput 
+            placeholder='Enter another medication'
+            onChangeText={(text)=>{this.updateState('update input field', {stateProp: 'medlistComponent', field: 'medicationField', text: text })}}
+            value={this.state.medlistComponent.medicationField} 
+          />
+          <Button title='Add new medication' onPress={()=>{this.updateState('add medication')}} />
+          <Button title='Back to profile' onPress={()=>{this.updateState('back to profile')}} />
+        </View>
+      );
+    }
+  }
+
+  toggleEditMedication(medication){
+    if (this.state.render.editMedication == medication.tradeName) {
+      return (
+        <View>
+          <Text>Trade name:</Text> 
+          <TextInput 
+            placeholder='Enter trade name'
+            onChangeText={(text)=>{this.updateState('update input field', {stateProp: 'medlistComponent', field: 'tradeNameField', text: text })}}
+            value={this.state.medlistComponent.tradeNameField} 
+          />
+          <Text>Chemical name:</Text>
+          <TextInput 
+            placeholder='Enter chemical name'
+            onChangeText={(text)=>{this.updateState('update input field', {stateProp: 'medlistComponent', field: 'chemicalNameField', text: text })}}
+            value={this.state.medlistComponent.chemicalNameField} 
+          />
+          <Text>Strength:</Text>
+          <TextInput 
+            placeholder='Enter strength'
+            onChangeText={(text)=>{this.updateState('update input field', {stateProp: 'medlistComponent', field: 'strengthField', text: text })}}
+            value={this.state.medlistComponent.strengthField} 
+          />
+          <Text>Strength units:</Text>
+          <TextInput 
+            placeholder='Enter strength unit'
+            onChangeText={(text)=>{this.updateState('update input field', {stateProp: 'medlistComponent', field: 'unitField', text: text })}}
+            value={this.state.medlistComponent.unitField} 
+          />
+          <Text>Used for:</Text>
+          <TextInput 
+            placeholder='Enter indication'
+            onChangeText={(text)=>{this.updateState('update input field', {stateProp: 'medlistComponent', field: 'purposeField', text: text })}}
+            value={this.state.medlistComponent.purposeField} 
+          />
+          <Text>Prescriber:</Text>
+          <TextInput 
+            placeholder='Enter prescriber'
+            onChangeText={(text)=>{this.updateState('update input field', {stateProp: 'medlistComponent', field: 'prescriberField', text: text })}}
+            value={this.state.medlistComponent.prescriberField} 
+          />
+          <Text>Directions:</Text>
+          <TextInput 
+            placeholder='Enter directions'
+            onChangeText={(text)=>{this.updateState('update input field', {stateProp: 'medlistComponent', field: 'directionsField', text: text })}}
+            value={this.state.medlistComponent.directionsField} 
+          />
+          <Text>Notes:</Text>
+          <TextInput 
+            placeholder='Enter additional notes'
+            onChangeText={(text)=>{this.updateState('update input field', {stateProp: 'medlistComponent', field: 'notesField', text: text })}}
+            value={this.state.medlistComponent.notesField} 
+          />
+          <Button title='Save' onPress={()=>{this.updateState('save medication', {prevTradeName: medication.tradeName, stateProp: 'medlistComponent', fields: Object.keys(this.state.medlistComponent).slice(1)} )}} />
+        </View>
+      );
+    } else {
+      return (
+        <View>
+          <Text>Trade name: {medication.tradeName}</Text>
+          <Text>Chemical name: {medication.chemicalName}</Text>
+          <Text>Strength: {medication.strength+medication.unit}</Text>
+          <Text>Used for: {medication.purpose}</Text>
+          <Text>Prescriber: {medication.prescriber}</Text>
+          <Text>Directions: {medication.directions}</Text>
+          <Text>Notes: {medication.notes}</Text>
+          <Button title='Edit' onPress={()=>{this.updateState('toggleEditMedication', medication)}} />
+        </View>
+      );     
+    }
+  }
+  //End of medlist componenet and subcomponenets
+
   render() {
     return (
       <ScrollView style={styles.appContainer}>
         {this.renderHome()}
         {this.createProfile()}
         {this.renderProfile()}
+        {this.renderMedlist()}
         <Button title="Home" onPress={()=>{this.updateState('return home')}} />
         <Text>{this.state.message}</Text>
       </ScrollView>
