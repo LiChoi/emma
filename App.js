@@ -385,7 +385,7 @@ class App extends Component {
           let medlistComponent = JSON.parse(JSON.stringify(prevState.medlistComponent));
           medlistComponent.tradeNameField = data.tradeName; 
           medlistComponent.chemicalNameField = data.chemicalName; 
-          medlistComponent.strengthField = data.strength; 
+          medlistComponent.strengthField = data.strength ? data.strength.toString() : data.strength;
           medlistComponent.unitField = data.unit; 
           medlistComponent.directionsField = data.directions; 
           medlistComponent.purposeField = data.purpose; 
@@ -400,16 +400,15 @@ class App extends Component {
         let incorrectInputMessage = "";
         console.log("fields: " + fields);
         fields.forEach((field)=>{
-          if (/\S/.test(this.state[stateProp][field])){
-            incorrectInputMessage.concat(`${field} cannot be empty. `);
-          }
+          //if (!this.state[stateProp][field]){ incorrectInputMessage = incorrectInputMessage.concat(`${field} cannot be empty. `); }
+          if (field == 'strengthField' && this.state[stateProp][field] && /[^0-9]/.test(this.state[stateProp][field]) ){ incorrectInputMessage = incorrectInputMessage.concat(`${field} must be a number. `); }
         });
         if (incorrectInputMessage == ""){
           await this.updateRealm('save medication', this.state, data); 
           this.setState(prevState => {
             let render = JSON.parse(JSON.stringify(prevState.render));
             render.editMedication = false;                  
-            return { render };                                
+            return { render: render, message: null };                                
           });
         } else {
           this.setState({message: incorrectInputMessage});
@@ -529,7 +528,13 @@ class App extends Component {
             medlist2 = medlist2.map((medication, i)=>{
               if (medication.tradeName == data.prevTradeName){
                 data.fields.forEach((field)=>{
-                  field == 'strengthField' ? medication[field.replace('Field', '')] = parseInt(this.state[data.stateProp][field], 10) : medication[field.replace('Field', '')] = this.state[data.stateProp][field];
+                  if (field == 'strengthField' && this.state[data.stateProp][field]){
+                    medication[field.replace('Field', '')] = parseInt(this.state[data.stateProp][field], 10);
+                  } else if (field == 'strengthField' && !this.state[data.stateProp][field]) {
+                    medication[field.replace('Field', '')] = 0;
+                  } else {
+                    medication[field.replace('Field', '')] = this.state[data.stateProp][field];
+                  }
                 });
                 return medication;
               } else {
