@@ -380,6 +380,27 @@ class App extends Component {
           return { render };                                
         });
         break; 
+      case 'render component':
+        /*
+        data = {toggleList: [ {name: 'component1', value: somevalue }...], loadList: [{component: 'component1', propList: [{name: 'property', value: somevalue}...]}...] }
+        */
+        this.setState(prevState => {  
+          let returnObject = {};                           
+          let render = JSON.parse(JSON.stringify(prevState.render));
+          data.toggleList.forEach((component)=>{
+            render[component.name] = [component.value];
+          });
+          returnObject['render'] = render;
+          data.loadList.forEach((load)=>{
+            let component = JSON.parse(JSON.stringify(prevState[load.component])); 
+            load.propList.forEach((prop)=>{
+              component[prop.name] = prop.value; 
+            });
+            returnObject[load.component] = component;
+          });
+          return returnObject;
+        });
+        break;
       case 'update input field':
         this.setState(prevState => {
           let component = JSON.parse(JSON.stringify(prevState[data.component]));
