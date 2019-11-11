@@ -380,27 +380,6 @@ class App extends Component {
           return { render };                                
         });
         break; 
-      case 'render component':
-        /*
-        data = {toggleList: [ {name: 'component1', value: somevalue }...], loadList: [{component: 'component1', propList: [{name: 'property', value: somevalue}...]}...] }
-        */
-        this.setState(prevState => {  
-          let returnObject = {};                           
-          let render = JSON.parse(JSON.stringify(prevState.render));
-          data.toggleList.forEach((component)=>{
-            render[component.name] = [component.value];
-          });
-          returnObject['render'] = render;
-          data.loadList.forEach((load)=>{
-            let component = JSON.parse(JSON.stringify(prevState[load.component])); 
-            load.propList.forEach((prop)=>{
-              component[prop.name] = prop.value; 
-            });
-            returnObject[load.component] = component;
-          });
-          return returnObject;
-        });
-        break;
       case 'update input field':
         this.setState(prevState => {
           let component = JSON.parse(JSON.stringify(prevState[data.component]));
@@ -634,8 +613,8 @@ class App extends Component {
         {
           this.state.realm.objects('User').filtered(`name='${this.state.profileComponent.currentProfile}'`)[0].allergies.map((allergy, i)=>{
             return (
-              <View>
-                <Text key={allergy.name + i}>Allergy: {allergy.name}</Text>
+              <View key={allergy.name + i}>
+                <Text>Allergy: {allergy.name}</Text>
                 <Text>Details: {allergy.details}</Text>
                 {this.renderEditAllergyDetails(allergy)}
               </View>
@@ -673,8 +652,8 @@ class App extends Component {
         {
           this.state.realm.objects('User').filtered(`name='${this.state.profileComponent.currentProfile}'`)[0].conditions.map((condition, i)=>{
             return (
-              <View>
-                <Text key={condition.name + i}>Condition: {condition.name}</Text>
+              <View key={condition.name + i}>
+                <Text>Condition: {condition.name}</Text>
                 <Text>Details: {condition.details}</Text>
                 {this.renderEditConditionDetails(condition)}
               </View>
