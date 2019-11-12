@@ -4,162 +4,6 @@ import { RNCamera } from 'react-native-camera';
 
 const Realm = require('realm');
 
-/*
-const instructions = Platform.select({
-  ios: 'Press Cmd+R to reload,\n' + 'Cmd+D or shake for dev menu',
-  android: 'Double tap R on your keyboard to reload,\n' + 'Shake or press menu button for dev menu',
-});
-
-const Realm = require('realm');
-
-const PendingView = () => (
-  <View
-    style={{
-      flex: 1,
-      backgroundColor: 'lightgreen',
-      justifyContent: 'center',
-      alignItems: 'center',
-    }}
-  >
-    <Text>Waiting</Text>
-  </View>
-);
-
-class App extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      realm: null,
-      db: "saved",
-      profile: 'John',
-      saved: "nada",
-      photo: ""
-    };
-  }
-
-  UNSAFE_componentWillMount() {
-    Realm.open({
-      schema: [{name: 'Dog', properties: {name: 'string'}}]
-    }).then(realm => {
-      realm.write(() => {
-        realm.create('Dog', {name: 'Rex'});
-      });
-      this.setState({ realm });
-    });
-  }
-
-  render() {
-    const info = this.state.realm
-    ? 'Number of dogs in this Realm: ' + this.state.realm.objects('Dog').length
-    : 'Loading...';
-    const rex = this.state.realm ? this.state.realm.objects('Dog')[0].name : 'Loading...';
-
-    return (
-      <ScrollView style={styles.scroller}>
-        <Text style={styles.welcome}>Welcome to React Native!</Text>
-        <Text style={styles.instructions}>To get started, edit App.js</Text>
-        <Text style={styles.instructions}>{instructions}</Text>
-        <TextInput
-          style={{height: 40}}
-          placeholder="Enter name here"
-          onChangeText={(text) => this.setState({profile: text})}
-        />
-        <Text>{this.state.profile}</Text>
-        <Text>{this.state.saved}</Text>
-        <Text>{rex}</Text>
-        <Button title="save"/>
-        <Button title="retrieve"/>
-        <Text>{info}</Text>
-        <View style={styles.camera}>
-          <RNCamera
-            style={styles.preview}
-            type={RNCamera.Constants.Type.back}
-            flashMode={RNCamera.Constants.FlashMode.on}
-            androidCameraPermissionOptions={{
-              title: 'Permission to use camera',
-              message: 'We need your permission to use your camera',
-              buttonPositive: 'Ok',
-              buttonNegative: 'Cancel',
-            }}
-            ratio="1:1" //Not all aspect ratios are supported. There's a function that returns list of supported ratios.
-          >
-            {({ camera, status }) => {
-              if (status !== 'READY') return <PendingView />;
-              return (
-                <View>
-                  <TouchableOpacity onPress={() => this.takePicture(camera)} style={styles.capture}>
-                    <Text style={{ fontSize: 14 }}> SNAP </Text>
-                  </TouchableOpacity>
-                </View>
-              );
-            }}
-          </RNCamera>
-        </View>
-        <Image style={styles.image} source={{uri: this.state.photo}} />
-      </ScrollView>
-    );
-  }
-
-  takePicture = async function(camera) {
-    const options = { quality: 0.5, base64: true };
-    const data = await camera.takePictureAsync(options);
-    //  eslint-disable-next-line
-    console.log(data.uri);
-    this.setState({photo: data.uri});
-  };
-
-}
-
-const styles = StyleSheet.create({
-  scroller: {
-    flex: 1,
-    flexDirection: 'column',
-    height: 1000
-  },
-  camera: {
-    height: 500,
-    justifyContent: "center"
-  },
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5FCFF',
-  },
-  welcome: {
-    flex: 2,
-    fontSize: 20,
-    textAlign: 'center',
-    margin: 10,
-  },
-  instructions: {
-    flex: 2,
-    textAlign: 'center',
-    color: '#333333',
-    marginBottom: 5,
-  },
-  preview: {
-    width: 200, //Can only adjust width size, and height will be determined by aspect ratio
-    justifyContent: 'flex-end',
-    alignItems: 'center'
-  },
-  capture: {
-    backgroundColor: '#fff',
-    borderRadius: 5,
-    padding: 15,
-    paddingHorizontal: 20,
-    alignSelf: 'center',
-    margin: 20
-  },
-  image: {
-    flex: 1,
-    height: 200,
-    width: 200,
-    backgroundColor: 'red'
-  }
-});
-*/
-
 const userSchema = {
   name: 'User',
   primaryKey: 'name', 
@@ -198,11 +42,25 @@ const medicationSchema = {
     directions: 'string?',
     purpose: 'string?',
     prescriber: 'string?',
-    notes: 'string?'
+    notes: 'string?',
+    imageLocation: 'string?'
   }
 };
 
 const schemas = [userSchema, conditionSchema, allergySchema, medicationSchema];
+
+const PendingView = () => (
+  <View
+    style={{
+      flex: 1,
+      backgroundColor: 'lightgreen',
+      justifyContent: 'center',
+      alignItems: 'center',
+    }}
+  >
+    <Text>Waiting</Text>
+  </View>
+);
 
 class App extends Component {
   constructor(props) {
@@ -210,7 +68,7 @@ class App extends Component {
     this.state = {
       realm: null,
       message: null,
-      render: {home: true, createProfileComponent: false, profileComponent: false, editAllergyDetails: false, editConditionDetails: false, editMedication: false}, 
+      render: {home: true, createProfileComponent: false, profileComponent: false, editAllergyDetails: false, editConditionDetails: false, editMedication: false, takePicture: false}, 
       createProfileComponent: {
         name: null,
         birthday: null
@@ -231,8 +89,10 @@ class App extends Component {
         directionsField: null,
         purposeField: null,
         prescriberField: null,
-        notesField: null
-      }
+        notesField: null,
+        imageLocationField: null
+      },
+      photoURI: null
     };
     this.renderHome = this.renderHome.bind(this);
     this.loadProfiles = this.loadProfiles.bind(this);
@@ -246,6 +106,8 @@ class App extends Component {
     this.renderEditAllergyDetails = this.renderEditAllergyDetails.bind(this);
     this.renderMedlist = this.renderMedlist.bind(this);
     this.toggleEditMedication = this.toggleEditMedication.bind(this);
+    this.renderTakePicture = this.renderTakePicture.bind(this);
+    this.takePicture = this.takePicture.bind(this);
   }
 
   componentDidMount() {
@@ -336,6 +198,7 @@ class App extends Component {
         this.setState(prevState => {                             
           let render = JSON.parse(JSON.stringify(prevState.render));
           render.profileComponent = "medlist";
+          render.takePicture = false;
           return { render };                                
         });
         break; 
@@ -351,7 +214,8 @@ class App extends Component {
           medlistComponent.directionsField = data.directions; 
           medlistComponent.purposeField = data.purpose; 
           medlistComponent.prescriberField = data.prescriber; 
-          medlistComponent.notesField = data.notes
+          medlistComponent.notesField = data.notes;
+          medlistComponent.imageLocationField = data.imageLocation;
           return { render: render, medlistComponent: medlistComponent };                                
         });
         break;     
@@ -400,6 +264,16 @@ class App extends Component {
           this.setState({message: "Cannot be empty"});
         }
         break;
+      case 'render takePicture':
+        this.setState(prevState => {                             
+          let render = JSON.parse(JSON.stringify(prevState.render));
+          Object.keys(render).map((key, i)=>{
+            if (key == 'takePicture'){ render[key] = true; }
+            else if (key !== 'editMedication') { render[key] = false; }
+          });
+          return { render };                                
+        });
+        break; 
       case 'return home':
         this.setState(prevState => {
           let render = JSON.parse(JSON.stringify(prevState.render));
@@ -733,7 +607,7 @@ class App extends Component {
           <TextInput 
             placeholder='Enter strength'
             onChangeText={(text)=>{this.updateState('update input field', {component: 'medlistComponent', field: 'strengthField', text: text })}}
-            value={this.state.medlistComponent.strengthField} 
+            value={this.state.medlistComponent.strengthField ? this.state.medlistComponent.strengthField.toString(): '0'} 
           />
           <Text>Strength units:</Text>
           <TextInput 
@@ -765,6 +639,7 @@ class App extends Component {
             onChangeText={(text)=>{this.updateState('update input field', {component: 'medlistComponent', field: 'notesField', text: text })}}
             value={this.state.medlistComponent.notesField} 
           />
+          <Button title='Take Picture' onPress={()=>{this.updateState('render takePicture', medication)}} />
           <Button title='Save' onPress={()=>{this.updateState('save medication', {prevTradeName: medication.tradeName, stateProp: 'medlistComponent', fields: Object.keys(this.state.medlistComponent).slice(1)} )}} />
         </View>
       );
@@ -778,12 +653,59 @@ class App extends Component {
           <Text>Prescriber: {medication.prescriber}</Text>
           <Text>Directions: {medication.directions}</Text>
           <Text>Notes: {medication.notes}</Text>
+          <Image style={styles.image} source={{uri: medication.imageLocation}} />
           <Button title='Edit' onPress={()=>{this.updateState('toggleEditMedication', medication)}} />
         </View>
       );     
     }
   }
   //End of medlist componenet and subcomponenets
+
+  //Beginning of takePicture and its subcomponents
+  renderTakePicture(){
+    if(this.state.render.takePicture){
+      return (
+        <View>
+          <RNCamera
+            style={styles.preview}
+            type={RNCamera.Constants.Type.back}
+            flashMode={RNCamera.Constants.FlashMode.on}
+            androidCameraPermissionOptions={{
+              title: 'Permission to use camera',
+              message: 'We need your permission to use your camera',
+              buttonPositive: 'Ok',
+              buttonNegative: 'Cancel',
+            }}
+            captureAudio={false}
+            ratio="1:1" //Not all aspect ratios are supported. There's a function that returns list of supported ratios.
+          >
+            {({ camera, status }) => {
+              if (status !== 'READY') return <PendingView />;
+              return (
+                <View>
+                  <TouchableOpacity onPress={() => this.takePicture(camera)} style={styles.capture}>
+                    <Text style={{ fontSize: 14 }}> SNAP </Text>
+                  </TouchableOpacity>
+                </View>
+              );
+            }}
+          </RNCamera>
+          <Button title='Back to Profile' onPress={()=>{this.updateState('render medlist')}} />
+        </View>
+      );
+    }
+  }
+
+  takePicture = async function(camera) {
+    const options = { quality: 0.5, base64: true };
+    const data = await camera.takePictureAsync(options);
+    //  eslint-disable-next-line
+    //console.log(data.uri);
+    //this.setState({photoURI: data.uri});
+    this.updateState('update input field', {component: 'medlistComponent', field: 'imageLocationField', text: data.uri});
+  }
+
+  //End of takePicture and its subcomponents
 
   render() {
     return (
@@ -792,6 +714,7 @@ class App extends Component {
         {this.createProfile()}
         {this.renderProfile()}
         {this.renderMedlist()}
+        {this.renderTakePicture()}
         <Button title="Home" onPress={()=>{this.updateState('return home')}} />
         <Text>{this.state.message}</Text>
       </ScrollView>
@@ -807,6 +730,29 @@ const styles = StyleSheet.create({
     flex: 1, 
     justifyContent: 'center', 
     alignItems: 'center'
+  },
+  camera: {
+    height: 500,
+    justifyContent: "center"
+  },
+  preview: {
+    width: 200, //Can only adjust width size, and height will be determined by aspect ratio
+    justifyContent: 'flex-end',
+    alignItems: 'center'
+  },
+  capture: {
+    backgroundColor: '#fff',
+    borderRadius: 5,
+    padding: 15,
+    paddingHorizontal: 20,
+    alignSelf: 'center',
+    margin: 20
+  },
+  image: {
+    flex: 1,
+    height: 200,
+    width: 200,
+    backgroundColor: 'red'
   }
 });
 
