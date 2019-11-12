@@ -91,8 +91,7 @@ class App extends Component {
         prescriberField: null,
         notesField: null,
         imageLocationField: null
-      },
-      photoURI: null
+      }
     };
     this.renderHome = this.renderHome.bind(this);
     this.loadProfiles = this.loadProfiles.bind(this);
