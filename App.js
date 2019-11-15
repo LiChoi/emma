@@ -68,7 +68,8 @@ class App extends Component {
     this.state = {
       realm: null,
       message: null,
-      render: {home: true, createProfileComponent: false, profileComponent: false, editAllergyDetails: false, editConditionDetails: false, editMedication: false, takePicture: false}, 
+      screen: 'home',
+      render: {editAllergyDetails: false, editConditionDetails: false, editMedication: false}, 
       createProfileComponent: {
         name: null,
         birthday: null
@@ -76,7 +77,7 @@ class App extends Component {
       profileComponent: {
         currentProfile: null,
         allergyField: null,
-        allergynDetailsField: null,
+        allergyDetailsField: null,
         conditionField: null,
         conditionDetailsField: null
       },
@@ -107,6 +108,7 @@ class App extends Component {
     this.toggleEditMedication = this.toggleEditMedication.bind(this);
     this.renderTakePicture = this.renderTakePicture.bind(this);
     this.takePicture = this.takePicture.bind(this);
+    this.toggleMedicationField = this.toggleMedicationField.bind(this);
   }
 
   componentDidMount() {
@@ -120,32 +122,12 @@ class App extends Component {
   //State and Realm management functions 
   async updateState(instruction, data) {
     switch(instruction) {
-      case 'render createProfile':
-        this.setState(prevState => {                             
-          let render = JSON.parse(JSON.stringify(prevState.render));
-          render.home = false; 
-          render.createProfileComponent = true;                             
-          return {render}
-        });
-        break;
       case 'profile saved':
         this.setState(prevState => {
           let createProfileComponent = JSON.parse(JSON.stringify(prevState.createProfileComponent));
           createProfileComponent.name = null;
           createProfileComponent.birthday = null; 
-          let render = JSON.parse(JSON.stringify(prevState.render));  
-          render.home = true;       
-          render.createProfileComponent = false;
-          return { createProfileComponent: createProfileComponent, render: render, message: null };                              
-        });
-        break;
-      case 'render editAllergyDetails':
-        this.setState(prevState => {
-          let render = JSON.parse(JSON.stringify(prevState.render));
-          render.editAllergyDetails = data.name;
-          let profileComponent = JSON.parse(JSON.stringify(prevState.profileComponent));
-          profileComponent.allergyDetailsField = data.details;
-          return { render: render, profileComponent: profileComponent };                               
+          return { createProfileComponent: createProfileComponent, screen: 'home', message: null };                              
         });
         break;
       case 'save allergy details':
@@ -161,25 +143,6 @@ class App extends Component {
           this.setState({message: "Cannot be empty"});
         }
         break;
-      case 'render profile':
-        this.setState(prevState => {
-          let profileComponent = JSON.parse(JSON.stringify(prevState.profileComponent));
-          profileComponent.currentProfile = data;                               
-          let render = JSON.parse(JSON.stringify(prevState.render));
-          render.profileComponent = "overview";
-          render.home = false;
-          return { profileComponent: profileComponent, render: render };                                
-        });
-        break; 
-      case 'render editConditionDetails':
-        this.setState(prevState => {
-          let render = JSON.parse(JSON.stringify(prevState.render));
-          render.editConditionDetails = data.name;
-          let profileComponent = JSON.parse(JSON.stringify(prevState.profileComponent));
-          profileComponent.conditionDetailsField = data.details;
-          return { render: render, profileComponent: profileComponent };                               
-        });
-        break;
       case 'save condition details':
         let textExists2 = /\S/.test(this.state.profileComponent.conditionDetailsField);
         if (textExists2){
@@ -192,32 +155,13 @@ class App extends Component {
         } else {
           this.setState({message: "Cannot be empty"});
         }
-        break;
-      case 'render medlist':
-        this.setState(prevState => {                             
-          let render = JSON.parse(JSON.stringify(prevState.render));
-          render.profileComponent = "medlist";
-          render.takePicture = false;
-          return { render };                                
-        });
         break; 
-      case 'toggleEditMedication':
-        this.setState(prevState => {                             
-          let render = JSON.parse(JSON.stringify(prevState.render));
-          render.editMedication = data.tradeName;
-          let medlistComponent = JSON.parse(JSON.stringify(prevState.medlistComponent));
-          medlistComponent.tradeNameField = data.tradeName; 
-          medlistComponent.chemicalNameField = data.chemicalName; 
-          medlistComponent.strengthField = data.strength ? data.strength.toString() : data.strength;
-          medlistComponent.unitField = data.unit; 
-          medlistComponent.directionsField = data.directions; 
-          medlistComponent.purposeField = data.purpose; 
-          medlistComponent.prescriberField = data.prescriber; 
-          medlistComponent.notesField = data.notes;
-          medlistComponent.imageLocationField = data.imageLocation;
-          return { render: render, medlistComponent: medlistComponent };                                
+      case 'load medication fields':
+        let keys = Object.keys(data);
+        keys.forEach((field)=>{
+          this.updateState('update input field', {component: 'medlistComponent', field: `${field}Field`, text: data[field]});
         });
-        break;     
+        break;
       case 'save medication':
         let stateProp = data.stateProp;
         let fields = data.fields;
@@ -236,17 +180,10 @@ class App extends Component {
           this.setState({message: incorrectInputMessage});
         }
         break;
-      case 'back to profile':
-        this.setState(prevState => {                             
-          let render = JSON.parse(JSON.stringify(prevState.render));
-          render.profileComponent = "overview";
-          return { render };                                
-        });
-        break; 
       case 'update input field':
         this.setState(prevState => {
           let component = JSON.parse(JSON.stringify(prevState[data.component]));
-          component[data.field] = data.text;                                
+          component[data.field] = (data.field == 'strengthField' && data.text) ? data.text.toString() : data.text;                       
           return { [data.component]: component };                                
         });
         break;
@@ -263,33 +200,9 @@ class App extends Component {
           this.setState({message: "Cannot be empty"});
         }
         break;
-      case 'render takePicture':
-        this.setState(prevState => {                             
-          let render = JSON.parse(JSON.stringify(prevState.render));
-          Object.keys(render).map((key, i)=>{
-            if (key == 'takePicture'){ render[key] = true; }
-            else if (key !== 'editMedication') { render[key] = false; }
-          });
-          return { render };                                
-        });
-        break; 
-      case 'return home':
-        this.setState(prevState => {
-          let render = JSON.parse(JSON.stringify(prevState.render));
-          let createProfileComponent = JSON.parse(JSON.stringify(prevState.createProfileComponent));
-          Object.keys(render).map(function(key, index) {
-            switch(key){
-              case 'allergyListComponent': 
-                if(render[key] = true){
-                  createProfileComponent.allergyListComponent.list = [];
-                }
-                break;
-            }
-            key == 'home' ? render[key] = true : render[key] = false;
-          });
-          return { render: render, createProfileComponent: createProfileComponent };                                
-        });
-        break;  
+      case 'switch screen':
+        this.setState({screen: data});
+        break;
     }
   }
 
@@ -387,13 +300,13 @@ class App extends Component {
 
   //The Home component and all subcomponent functions
   renderHome(){
-    if (this.state.render.home){
+    if (this.state.screen == 'home'){
       return (
         <View style={styles.home}>
           <Text>Select a profile</Text>
           {this.loadProfiles()}
           <Text>Create new profile</Text>
-          <Button title="new" onPress={()=>{this.updateState('render createProfile')}} />
+          <Button title="new" onPress={()=>{this.updateState('switch screen', 'createProfile')}} />
         </View>
       );
     }
@@ -408,7 +321,7 @@ class App extends Component {
             {
               users.map((user, i)=>{
                 return(
-                  <Button key={"username "+i} title={user.name} onPress={()=>{this.updateState('render profile', user.name)}} />
+                  <Button key={"username "+i} title={user.name} onPress={()=>{this.updateState('switch screen', 'profile'); this.updateState('update input field', {component: 'profileComponent', field: 'currentProfile', text: user.name})}} />
                 );
               })
             }
@@ -429,7 +342,7 @@ class App extends Component {
 
   //Beginning of createProfileComponent and all its subcomponenets 
   createProfile() {
-    if (this.state.render.createProfileComponent){
+    if (this.state.screen == 'createProfile'){
       return (
         <View>
           <TextInput
@@ -451,7 +364,7 @@ class App extends Component {
 
   //Beginning of profile componenent and its subcomponenets
   renderProfile(){
-    if (this.state.render.profileComponent == 'overview'){
+    if (this.state.screen == 'profile'){
       return (
         <View>
           <Text>Name:</Text>
@@ -474,7 +387,7 @@ class App extends Component {
             value={this.state.profileComponent.conditionField} 
           />
           <Button title='Add condition' onPress={()=>{this.updateState('add to list', {component: 'profileComponent', field: 'conditionField'})}} />
-          <Button title='View med list' onPress={()=>{this.updateState('render medlist'), this.state}} />
+          <Button title='View med list' onPress={()=>{this.updateState('switch screen', 'medlist')}} />
         </View>
       );
     }
@@ -502,7 +415,7 @@ class App extends Component {
     if (this.state.render.editAllergyDetails !== allergy.name){
       return (
         <View>
-          <Button title='Edit Details' onPress={()=>{this.updateState('render editAllergyDetails', allergy)}} />
+          <Button title='Edit Details' onPress={()=>{this.updateState('update input field', {component: 'render', field: 'editAllergyDetails', text: allergy.name}); this.updateState('update input field', {component: 'profileComponent', field: 'allergyDetailsField', text: allergy.details})}} />
         </View>
       );
     } else {
@@ -541,7 +454,7 @@ class App extends Component {
     if (this.state.render.editConditionDetails !== condition.name){
       return (
         <View>
-          <Button title='Edit Details' onPress={()=>{this.updateState('render editConditionDetails', condition)}} />
+          <Button title='Edit Details' onPress={()=>{this.updateState('update input field', {component: 'render', field: 'editConditionDetails', text: condition.name}); this.updateState('update input field', {component: 'profileComponent', field: 'conditionDetailsField', text: condition.details})}} />
         </View>
       );
     } else {
@@ -561,7 +474,7 @@ class App extends Component {
 
   //Beginning of medlist component and its subcomponents
   renderMedlist(){
-    if (this.state.render.profileComponent == 'medlist'){
+    if (this.state.screen == 'medlist'){
       return (
         <View>
           <Text>Medication List</Text>
@@ -580,65 +493,45 @@ class App extends Component {
             value={this.state.medlistComponent.medicationField} 
           />
           <Button title='Add new medication' onPress={()=>{this.updateState('add to list', {component: 'medlistComponent', field: 'medicationField'})}} />
-          <Button title='Back to profile' onPress={()=>{this.updateState('back to profile')}} />
+          <Button title='Back to profile' onPress={()=>{this.updateState('switch screen', 'profile')}} />
         </View>
       );
     }
+  }
+
+  toggleMedicationField(field){
+    return (
+      <TextInput 
+        placeholder={`Enter ${field}`}
+        onChangeText={(text)=>{this.updateState('update input field', {component: 'medlistComponent', field: `${field}Field`, text: text })}}
+        value={this.state.medlistComponent[`${field}Field`]} 
+      />
+    );
   }
 
   toggleEditMedication(medication){
     if (this.state.render.editMedication == medication.tradeName) {
       return (
         <View>
-          <Text>Trade name:</Text> 
-          <TextInput 
-            placeholder='Enter trade name'
-            onChangeText={(text)=>{this.updateState('update input field', {component: 'medlistComponent', field: 'tradeNameField', text: text })}}
-            value={this.state.medlistComponent.tradeNameField} 
-          />
+          <Text>Trade name:</Text>
+          {this.toggleMedicationField('tradeName')}
           <Text>Chemical name:</Text>
-          <TextInput 
-            placeholder='Enter chemical name'
-            onChangeText={(text)=>{this.updateState('update input field', {component: 'medlistComponent', field: 'chemicalNameField', text: text })}}
-            value={this.state.medlistComponent.chemicalNameField} 
-          />
+          {this.toggleMedicationField('chemicalName')}
           <Text>Strength:</Text>
-          <TextInput 
-            placeholder='Enter strength'
-            onChangeText={(text)=>{this.updateState('update input field', {component: 'medlistComponent', field: 'strengthField', text: text })}}
-            value={this.state.medlistComponent.strengthField ? this.state.medlistComponent.strengthField.toString(): '0'} 
-          />
-          <Text>Strength units:</Text>
-          <TextInput 
-            placeholder='Enter strength unit'
-            onChangeText={(text)=>{this.updateState('update input field', {component: 'medlistComponent', field: 'unitField', text: text })}}
-            value={this.state.medlistComponent.unitField} 
-          />
+          {this.toggleMedicationField('strength')}
+          <Text>Unit:</Text>
+          {this.toggleMedicationField('unit')}
           <Text>Used for:</Text>
-          <TextInput 
-            placeholder='Enter indication'
-            onChangeText={(text)=>{this.updateState('update input field', {component: 'medlistComponent', field: 'purposeField', text: text })}}
-            value={this.state.medlistComponent.purposeField} 
-          />
+          {this.toggleMedicationField('purpose')}
           <Text>Prescriber:</Text>
-          <TextInput 
-            placeholder='Enter prescriber'
-            onChangeText={(text)=>{this.updateState('update input field', {component: 'medlistComponent', field: 'prescriberField', text: text })}}
-            value={this.state.medlistComponent.prescriberField} 
-          />
+          {this.toggleMedicationField('prescriber')}
           <Text>Directions:</Text>
-          <TextInput 
-            placeholder='Enter directions'
-            onChangeText={(text)=>{this.updateState('update input field', {component: 'medlistComponent', field: 'directionsField', text: text })}}
-            value={this.state.medlistComponent.directionsField} 
-          />
+          {this.toggleMedicationField('directions')}
           <Text>Notes:</Text>
-          <TextInput 
-            placeholder='Enter additional notes'
-            onChangeText={(text)=>{this.updateState('update input field', {component: 'medlistComponent', field: 'notesField', text: text })}}
-            value={this.state.medlistComponent.notesField} 
-          />
-          <Button title='Take Picture' onPress={()=>{this.updateState('render takePicture', medication)}} />
+          {this.toggleMedicationField('notes')}
+          <Text>Image:</Text>
+          <Image style={styles.image} source={{uri: this.state.medlistComponent.imageLocationField}} />
+          <Button title='Take Picture' onPress={()=>{this.updateState('switch screen', 'takePicture')}} />
           <Button title='Save' onPress={()=>{this.updateState('save medication', {prevTradeName: medication.tradeName, stateProp: 'medlistComponent', fields: Object.keys(this.state.medlistComponent).slice(1)} )}} />
         </View>
       );
@@ -652,8 +545,9 @@ class App extends Component {
           <Text>Prescriber: {medication.prescriber}</Text>
           <Text>Directions: {medication.directions}</Text>
           <Text>Notes: {medication.notes}</Text>
+          <Text>Image:</Text>
           <Image style={styles.image} source={{uri: medication.imageLocation}} />
-          <Button title='Edit' onPress={()=>{this.updateState('toggleEditMedication', medication)}} />
+          <Button title='Edit' onPress={()=>{this.updateState('update input field', {component: 'render', field: 'editMedication', text: medication.tradeName}); this.updateState('load medication fields', medication);}} />
         </View>
       );     
     }
@@ -662,7 +556,7 @@ class App extends Component {
 
   //Beginning of takePicture and its subcomponents
   renderTakePicture(){
-    if(this.state.render.takePicture){
+    if (this.state.screen == 'takePicture'){
       return (
         <View>
           <RNCamera
@@ -689,7 +583,7 @@ class App extends Component {
               );
             }}
           </RNCamera>
-          <Button title='Back to Profile' onPress={()=>{this.updateState('render medlist')}} />
+          <Button title='Back to medlist' onPress={()=>{this.updateState('switch screen', 'medlist')}} />
         </View>
       );
     }
@@ -698,12 +592,9 @@ class App extends Component {
   takePicture = async function(camera) {
     const options = { quality: 0.5, base64: true };
     const data = await camera.takePictureAsync(options);
-    //  eslint-disable-next-line
-    //console.log(data.uri);
-    //this.setState({photoURI: data.uri});
     this.updateState('update input field', {component: 'medlistComponent', field: 'imageLocationField', text: data.uri});
+    this.updateState('switch screen', 'medlist');
   }
-
   //End of takePicture and its subcomponents
 
   render() {
@@ -714,7 +605,7 @@ class App extends Component {
         {this.renderProfile()}
         {this.renderMedlist()}
         {this.renderTakePicture()}
-        <Button title="Home" onPress={()=>{this.updateState('return home')}} />
+        <Button title="Home" onPress={()=>{this.updateState('switch screen', 'home')}} />
         <Text>{this.state.message}</Text>
       </ScrollView>
     );
