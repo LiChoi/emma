@@ -1,0 +1,2 @@
+To run the app on android, connect your android phone to computer via usb and turn on developer mode and enable usb debugging. 
+Then, in the terminal, while inside Emma folder, run this command:  react-native run-android
