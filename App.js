@@ -141,6 +141,22 @@ const renderProfile = (state, updateState) => {
         />
         <Button title='Add condition' onPress={()=>{updateState('add to list', {component: 'profileComponent', field: 'conditionField'})}} />
         <Button title='View med list' onPress={()=>{updateState('by path and value', {path: 'screen', value: 'medlist'})}} />
+        {deleteProfile(state, updateState)}
+      </View>
+    );
+  }
+}
+
+const deleteProfile = (state, updateState) => {
+  if (!state.render.deleteProfile){
+    return (
+      <Button title='Delete profile' onPress={()=>{updateState('by path and value', {path: 'render.deleteProfile', value: true})}} />
+    );
+  } else {
+    return (
+      <View>
+        <Text>Are you certain you want to permanently delete this profile?</Text>
+        <Button title="Yes, I'm sure" onPress={()=>{updateState('delete', {what: 'profile', which: state.profileComponent.currentProfile})}} />
       </View>
     );
   }
@@ -180,6 +196,7 @@ const renderEditAllergyDetails = (state, updateState, allergy) => {
           value={state.profileComponent.allergyDetailsField} 
         />
         <Button title='Save Details' onPress={()=>{updateState('save allergy details', allergy.name)}} />
+        <Button title='Delete Allergy' onPress={()=>{updateState('delete', {what: 'allergies', whose: state.profileComponent.currentProfile, which: allergy.name})}} />
       </View>
     );
   }
@@ -219,6 +236,7 @@ const renderEditConditionDetails = (state, updateState, condition) => {
           value={state.profileComponent.conditionDetailsField} 
         />
         <Button title='Save Details' onPress={()=>{updateState('save condition details', condition.name)}} />
+        <Button title='Delete Condition' onPress={()=>{updateState('delete', {what: 'conditions', whose: state.profileComponent.currentProfile, which: condition.name})}} />
       </View>
     );
   }
@@ -286,6 +304,7 @@ const toggleEditMedication = (state, updateState, medication) => {
         <Image style={styles.image} source={{uri: state.medlistComponent.imageLocationField}} />
         <Button title='Take Picture' onPress={()=>{updateState('by path and value', {path: 'screen', value: 'takePicture'})}} />
         <Button title='Save' onPress={()=>{updateState('save medication', {prevTradeName: medication.tradeName, stateProp: 'medlistComponent', fields: Object.keys(state.medlistComponent).slice(1)} )}} />
+        <Button title='Delete Medication' onPress={()=>{updateState('delete', {what: 'medlist', whose: state.profileComponent.currentProfile, which: medication.tradeName})}} />
       </View>
     );
   } else {
@@ -363,7 +382,6 @@ const PendingView = () => (
 );
 //End of takePicture and its subcomponents
 
-
 class App extends Component {
   constructor(props) {
     super(props);
@@ -371,7 +389,7 @@ class App extends Component {
       realm: null,
       message: null,
       screen: 'home',
-      render: {editAllergyDetails: false, editConditionDetails: false, editMedication: false}, 
+      render: {editAllergyDetails: false, editConditionDetails: false, editMedication: false, deleteProfile: false}, 
       createProfileComponent: {
         name: null,
         birthday: null
@@ -468,6 +486,13 @@ class App extends Component {
           this.setState({message: incorrectInputMessage});
         }
         break;
+      case 'delete':
+        this.updateRealm('delete', data);
+        if (data.what == 'profile'){
+          this.updateState('by path and value', {path: 'render.deleteProfile', value: false});
+          this.setState({screen: 'home'});
+        }
+        break;
       case 'add to list':
         let notEmpty = /\S/.test(this.state[data.component][data.field]);
         if (notEmpty && this.state[data.component][data.field]){
@@ -515,6 +540,16 @@ class App extends Component {
     }).then(realm => {
       realm.write(() => {
         switch(instruction){
+          case 'delete':
+            if (data.what == 'profile') { realm.delete(realm.objects('User').filtered(`name='${data.which}'`)); }
+            else { 
+              let list = this.state.realm.objects('User').filtered(`name='${data.whose}'`)[0][data.what]; 
+              let index;
+              list.forEach((item, i)=>{ if(item.name == data.which || item.tradeName == data.which){ index = i; } });
+              list.splice(index, 1);
+              realm.create('User', {name: data.whose, [data.what]: list}, true);
+            }
+            break;
           case 'save new profile':
             let validDate = validateDate(this.state.createProfileComponent.birthday);
             let birthday = validDate ? new Date(this.state.createProfileComponent.birthday + "T10:59:30Z") : null;
