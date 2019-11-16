@@ -521,7 +521,7 @@ class App extends Component {
 
   updateRealm(instruction, data){
     function validateDate(dateStr){
-      //YYYY-MM-DD
+      //YYYY-MM-DD format
       if (!dateStr || dateStr.length !== 10){ return false; }
       let year = /\d{4}/.test(dateStr.substring(0,4)) ? parseInt(dateStr.substring(0,4), 10) : "not a number";
       let dash1 = dateStr.charAt(4);
