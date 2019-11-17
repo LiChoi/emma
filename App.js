@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Platform, StyleSheet, Text, View, TouchableOpacity, Image, ScrollView, TextInput, Button } from 'react-native';
 import { RNCamera } from 'react-native-camera';
+const RNFS = require('react-native-fs');
 
 //Beginning of realm constants
 const Realm = require('realm');
@@ -157,6 +158,7 @@ const deleteProfile = (state, updateState) => {
       <View>
         <Text>Are you certain you want to permanently delete this profile?</Text>
         <Button title="Yes, I'm sure" onPress={()=>{updateState('delete', {what: 'profile', which: state.profileComponent.currentProfile})}} />
+        <Button title='Do not delete' onPress={()=>{updateState('by path and value', {path: 'render.deleteProfile', value: false})}} />
       </View>
     );
   }
@@ -348,7 +350,7 @@ const renderTakePicture = (state, updateState) =>{
             if (status !== 'READY') return <PendingView />;
             return (
               <View>
-                <TouchableOpacity onPress={() => takePicture(updateState, camera)} style={styles.capture}>
+                <TouchableOpacity onPress={() => takePicture(state, updateState, camera)} style={styles.capture}>
                   <Text style={{ fontSize: 14 }}> SNAP </Text>
                 </TouchableOpacity>
               </View>
@@ -361,9 +363,10 @@ const renderTakePicture = (state, updateState) =>{
   }
 }
 
-const takePicture = async function(updateState, camera) {
+const takePicture = async function(state, updateState, camera) {
   const options = { quality: 0.5, base64: true };
   const data = await camera.takePictureAsync(options);
+  deletePreviousImage(state.medlistComponent.imageLocationField);
   updateState('by path and value', {path: 'medlistComponent.imageLocationField', value: data.uri});
   updateState('by path and value', {path: 'screen', value: 'medlist'});
 }
@@ -380,6 +383,20 @@ const PendingView = () => (
     <Text>Waiting</Text>
   </View>
 );
+
+const deletePreviousImage = (oldImagePath) => {
+  if (oldImagePath){
+    const file = oldImagePath;
+    const filePath = file.split('///').pop()  // removes leading file:///
+    RNFS.exists(filePath)
+      .then((res) => {
+        if (res) {
+          RNFS.unlink(filePath)
+            .then(() => console.log('FILE DELETED'))
+        }
+      }) 
+  }
+}
 //End of takePicture and its subcomponents
 
 class App extends Component {
@@ -541,7 +558,12 @@ class App extends Component {
       realm.write(() => {
         switch(instruction){
           case 'delete':
-            if (data.what == 'profile') { realm.delete(realm.objects('User').filtered(`name='${data.which}'`)); }
+            if (data.what == 'profile') { 
+              let medlist = this.state.realm.objects('User').filtered(`name='${data.which}'`)[0].medlist; 
+              let imageList = medlist.map((item)=>{ return item.imageLocation; });
+              imageList.forEach((imageURI)=>{ deletePreviousImage(imageURI); });
+              realm.delete(realm.objects('User').filtered(`name='${data.which}'`)); 
+            }
             else { 
               let list = this.state.realm.objects('User').filtered(`name='${data.whose}'`)[0][data.what]; 
               let index;
