@@ -287,7 +287,7 @@ const toggleEditMedication = (state, updateState, medication) => {
     return (
       <View>
         <Text>Trade name:</Text>
-        {toggleMedicationField(state, updateState, 'tradeName')}
+        <Text>{state.medlistComponent.tradeNameField}</Text>
         <Text>Chemical name:</Text>
         {toggleMedicationField(state, updateState, 'chemicalName')}
         <Text>Strength:</Text>
@@ -305,7 +305,7 @@ const toggleEditMedication = (state, updateState, medication) => {
         <Text>Image:</Text>
         <Image style={styles.image} source={{uri: state.medlistComponent.imageLocationField}} />
         <Button title='Take Picture' onPress={()=>{updateState('by path and value', {path: 'screen', value: 'takePicture'})}} />
-        <Button title='Save' onPress={()=>{updateState('save medication', {prevTradeName: medication.tradeName, stateProp: 'medlistComponent', fields: Object.keys(state.medlistComponent).slice(1)} )}} />
+        <Button title='Save' onPress={()=>{updateState('save medication', {prevTradeName: medication.tradeName, stateProp: 'medlistComponent', fields: Object.keys(state.medlistComponent)} )}} />
         <Button title='Delete Medication' onPress={()=>{updateState('delete', {what: 'medlist', whose: state.profileComponent.currentProfile, which: medication.tradeName})}} />
       </View>
     );
@@ -321,7 +321,7 @@ const toggleEditMedication = (state, updateState, medication) => {
         <Text>Notes: {medication.notes}</Text>
         <Text>Image:</Text>
         <Image style={styles.image} source={{uri: medication.imageLocation}} />
-        <Button title='Edit' onPress={()=>{updateState('by path and value', {path: 'render.editMedication', value: medication.tradeName}); updateState('load medication fields', medication);}} />
+        <Button title='Edit' onPress={()=>{updateState('by path and value', {path: 'render.editMedication', value: medication.tradeName}); updateState('load medication fields', medication); deletePreviousImage(state.medlistComponent.imageLocationField);}} />
       </View>
     );     
   }
@@ -392,12 +392,36 @@ const deletePreviousImage = (oldImagePath) => {
       .then((res) => {
         if (res) {
           RNFS.unlink(filePath)
-            .then(() => console.log('FILE DELETED'))
+            .then(() => console.log(`FILE DELETED: ${filePath}`))
         }
       }) 
   }
 }
+
+const purgeUnsavedImages = () => {
+  const path = 'data/user/0/com.emma/cache/Camera';
+  RNFS.readDir(path)
+    .then((result) => {
+      result.forEach((item)=>{
+        deletePreviousImage(item.path);
+      });
+    })
+}
 //End of takePicture and its subcomponents
+
+//Miscellaneous functions
+const changeObjectByPath = (obj, path, value) => {
+  let build = obj;
+  if (path.length == 0){ obj = value; } 
+  else { 
+    path.forEach((step, i) => {
+      if (i < path.length - 1) { build = build[step]; }  //Use this method to get build to the last object key in the path
+      else { build[step] = value; }     //This will set rootProp as well
+    });
+  }
+  return obj;
+}
+//End of miscellaneous functions
 
 class App extends Component {
   constructor(props) {
@@ -419,7 +443,6 @@ class App extends Component {
         conditionDetailsField: null
       },
       medlistComponent: {
-        medicationField: null,
         tradeNameField: null,
         chemicalNameField: null,
         strengthField: null,
@@ -496,8 +519,12 @@ class App extends Component {
           await this.updateRealm('save medication', data); 
           this.setState(prevState => {
             let render = JSON.parse(JSON.stringify(prevState.render));
-            render.editMedication = false;                  
-            return { render: render, message: null };                                
+            render.editMedication = false;   
+            let medlistComponent = JSON.parse(JSON.stringify(prevState.medlistComponent));
+            fields.forEach((field)=>{
+              medlistComponent[field] = null;
+            });               
+            return { render: render, message: null, medlistComponent: medlistComponent };                                
           });
         } else {
           this.setState({message: incorrectInputMessage});
@@ -529,8 +556,7 @@ class App extends Component {
         let value = (path[0] == 'strengthField' && data.value) ? data.value.toString() : data.value; 
         this.setState(prevState => {
           let rootProp = JSON.parse(JSON.stringify(prevState[root]));
-          if (path.length == 0){ rootProp = value; } else { rootProp[eval(path)] = value; }
-          return { [root]: rootProp };                                
+          return { [root]: changeObjectByPath(rootProp, path, value) };                                
         });
         break;
     }
@@ -568,6 +594,7 @@ class App extends Component {
               let list = this.state.realm.objects('User').filtered(`name='${data.whose}'`)[0][data.what]; 
               let index;
               list.forEach((item, i)=>{ if(item.name == data.which || item.tradeName == data.which){ index = i; } });
+              if (data.what == 'medlist') { deletePreviousImage(list[index].imageLocation); }
               list.splice(index, 1);
               realm.create('User', {name: data.whose, [data.what]: list}, true);
             }
@@ -651,6 +678,7 @@ class App extends Component {
         {renderMedlist(this.state, this.updateState)}
         {renderTakePicture(this.state, this.updateState)}
         <Button title="Home" onPress={()=>{this.updateState('by path and value', {path: 'screen', value: 'home'})}} />
+        <Button title='Purge images' onPress={()=>{purgeUnsavedImages();}} />
         <Text>{this.state.message}</Text>
       </ScrollView>
     );
