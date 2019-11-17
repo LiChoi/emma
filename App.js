@@ -109,7 +109,7 @@ const createProfile = (state, updateState, updateRealm) => {
           onChangeText={(text)=>{updateState('by path and value', {path: 'createProfileComponent.birthday', value: text })}}
           value={state.createProfileComponent.birthday}  
         />
-        <Button title="Submit" onPress={()=>{updateRealm('save new profile', state)}} />
+        <Button title="Submit" onPress={()=>{updateState('save', {root: 'createProfileComponent', keys: Object.keys(state.createProfileComponent) })}} />
       </View>
     );
   }
@@ -132,7 +132,7 @@ const renderProfile = (state, updateState) => {
           onChangeText={(text)=>{updateState('by path and value', {path: 'profileComponent.allergyField', value: text })}}
           value={state.profileComponent.allergyField} 
         />
-        <Button title='Add allergy' onPress={()=>{updateState('add to list', {component: 'profileComponent', field: 'allergyField'})}} />
+        <Button title='Add allergy' onPress={()=>{updateState('save', {what: 'allergies', whose: state.profileComponent.currentProfile, root: 'profileComponent', keys: ['allergyField']}); }} />
         <Text>Medical Conditions:</Text>
         {renderConditionList(state, updateState)}
         <TextInput 
@@ -140,7 +140,7 @@ const renderProfile = (state, updateState) => {
           onChangeText={(text)=>{updateState('by path and value', {path: 'profileComponent.conditionField', value: text })}}
           value={state.profileComponent.conditionField} 
         />
-        <Button title='Add condition' onPress={()=>{updateState('add to list', {component: 'profileComponent', field: 'conditionField'})}} />
+        <Button title='Add condition' onPress={()=>{updateState('save', {what: 'conditions', whose: state.profileComponent.currentProfile, root: 'profileComponent', keys: ['conditionField']}); }} />
         <Button title='View med list' onPress={()=>{updateState('by path and value', {path: 'screen', value: 'medlist'})}} />
         {deleteProfile(state, updateState)}
       </View>
@@ -186,7 +186,7 @@ const renderEditAllergyDetails = (state, updateState, allergy) => {
   if (state.render.editAllergyDetails !== allergy.name){
     return (
       <View>
-        <Button title='Edit Details' onPress={()=>{updateState('by path and value', {path: 'render.editAllergyDetails', value: allergy.name}); updateState('by path and value', {path: 'profileComponent.allergyDetailsField', value: allergy.details})}} />
+        <Button title='Edit Details' onPress={()=>{updateState('by path and value', {path: 'render.editAllergyDetails', value: allergy.name}); updateState('by path and value', {path: 'profileComponent.allergyField', value: allergy.name}); updateState('by path and value', {path: 'profileComponent.allergyDetailsField', value: allergy.details})}} />
       </View>
     );
   } else {
@@ -197,7 +197,7 @@ const renderEditAllergyDetails = (state, updateState, allergy) => {
           onChangeText={(text)=>{updateState('by path and value', {path: 'profileComponent.allergyDetailsField', value: text })}}
           value={state.profileComponent.allergyDetailsField} 
         />
-        <Button title='Save Details' onPress={()=>{updateState('save allergy details', allergy.name)}} />
+        <Button title='Save Details' onPress={()=>{updateState('save', {what: 'allergies', whose: state.profileComponent.currentProfile, which: allergy.name, root: 'profileComponent', keys: ['allergyDetailsField', 'allergyField']}); updateState('by path and value', {path: 'render.editAllergyDetails', value: false}); }} />
         <Button title='Delete Allergy' onPress={()=>{updateState('delete', {what: 'allergies', whose: state.profileComponent.currentProfile, which: allergy.name})}} />
       </View>
     );
@@ -226,7 +226,7 @@ const renderEditConditionDetails = (state, updateState, condition) => {
   if (state.render.editConditionDetails !== condition.name){
     return (
       <View>
-        <Button title='Edit Details' onPress={()=>{updateState('by path and value', {path: 'render.editConditionDetails', value: condition.name}); updateState('by path and value', {path: 'profileComponent.conditionDetailsField', value: condition.details})}} />
+        <Button title='Edit Details' onPress={()=>{updateState('by path and value', {path: 'render.editConditionDetails', value: condition.name}); updateState('by path and value', {path: 'profileComponent.conditionField', value: condition.name}) ; updateState('by path and value', {path: 'profileComponent.conditionDetailsField', value: condition.details}); }} />
       </View>
     );
   } else {
@@ -237,7 +237,7 @@ const renderEditConditionDetails = (state, updateState, condition) => {
           onChangeText={(text)=>{updateState('by path and value', {path: 'profileComponent.conditionDetailsField', value: text })}}
           value={state.profileComponent.conditionDetailsField} 
         />
-        <Button title='Save Details' onPress={()=>{updateState('save condition details', condition.name)}} />
+        <Button title='Save Details' onPress={()=>{updateState('save', {what: 'conditions', whose: state.profileComponent.currentProfile, which: condition.name, root: 'profileComponent', keys: ['conditionDetailsField', 'conditionField']}); updateState('by path and value', {path: 'render.editConditionDetails', value: false}); }} />
         <Button title='Delete Condition' onPress={()=>{updateState('delete', {what: 'conditions', whose: state.profileComponent.currentProfile, which: condition.name})}} />
       </View>
     );
@@ -262,10 +262,10 @@ const renderMedlist = (state, updateState) => {
         }
         <TextInput 
           placeholder='Enter another medication'
-          onChangeText={(text)=>{updateState('by path and value', {path: 'medlistComponent.medicationField', value: text })}}
-          value={state.medlistComponent.medicationField} 
+          onChangeText={(text)=>{updateState('by path and value', {path: 'medlistComponent.tradeNameField', value: text })}}
+          value={state.medlistComponent.tradeNameField} 
         />
-        <Button title='Add new medication' onPress={()=>{updateState('add to list', {component: 'medlistComponent', field: 'medicationField'})}} />
+        <Button title='Add medication' onPress={()=>{updateState('save', {what: 'medlist', whose: state.profileComponent.currentProfile, root: 'medlistComponent', keys: ['tradeNameField']}); }} />
         <Button title='Back to profile' onPress={()=>{updateState('by path and value', {path: 'screen', value: 'profile'})}} />
       </View>
     );
@@ -287,7 +287,7 @@ const toggleEditMedication = (state, updateState, medication) => {
     return (
       <View>
         <Text>Trade name:</Text>
-        {toggleMedicationField(state, updateState, 'tradeName')}
+        <Text>{state.medlistComponent.tradeNameField}</Text>
         <Text>Chemical name:</Text>
         {toggleMedicationField(state, updateState, 'chemicalName')}
         <Text>Strength:</Text>
@@ -305,7 +305,7 @@ const toggleEditMedication = (state, updateState, medication) => {
         <Text>Image:</Text>
         <Image style={styles.image} source={{uri: state.medlistComponent.imageLocationField}} />
         <Button title='Take Picture' onPress={()=>{updateState('by path and value', {path: 'screen', value: 'takePicture'})}} />
-        <Button title='Save' onPress={()=>{updateState('save medication', {prevTradeName: medication.tradeName, stateProp: 'medlistComponent', fields: Object.keys(state.medlistComponent).slice(1)} )}} />
+        <Button title='Save' onPress={()=>{updateState('save', {what: 'medlist', whose: state.profileComponent.currentProfile, which: medication.tradeName, root: 'medlistComponent', keys: Object.keys(state.medlistComponent)}); }} />
         <Button title='Delete Medication' onPress={()=>{updateState('delete', {what: 'medlist', whose: state.profileComponent.currentProfile, which: medication.tradeName})}} />
       </View>
     );
@@ -321,7 +321,7 @@ const toggleEditMedication = (state, updateState, medication) => {
         <Text>Notes: {medication.notes}</Text>
         <Text>Image:</Text>
         <Image style={styles.image} source={{uri: medication.imageLocation}} />
-        <Button title='Edit' onPress={()=>{updateState('by path and value', {path: 'render.editMedication', value: medication.tradeName}); updateState('load medication fields', medication);}} />
+        <Button title='Edit' onPress={()=>{updateState('by path and value', {path: 'render.editMedication', value: medication.tradeName}); updateState('load medication fields', medication); deletePreviousImage(state.medlistComponent.imageLocationField);}} />
       </View>
     );     
   }
@@ -392,12 +392,97 @@ const deletePreviousImage = (oldImagePath) => {
       .then((res) => {
         if (res) {
           RNFS.unlink(filePath)
-            .then(() => console.log('FILE DELETED'))
+            .then(() => console.log(`FILE DELETED: ${filePath}`))
         }
       }) 
   }
 }
+
+const purgeUnsavedImages = () => {
+  const path = 'data/user/0/com.emma/cache/Camera';
+  RNFS.readDir(path)
+    .then((result) => {
+      result.forEach((item)=>{
+        deletePreviousImage(item.path);
+      });
+    })
+}
 //End of takePicture and its subcomponents
+
+//Miscellaneous functions and constants
+const changeObjectByPath = (obj, path, value) => {
+  let build = obj;
+  if (path.length == 0){ obj = value; } 
+  else { 
+    path.forEach((step, i) => {
+      if (i < path.length - 1) { build = build[step]; }  //Use this method to get build to the last object key in the path
+      else { build[step] = value; }     //This will set rootProp as well
+    });
+  }
+  return obj;
+}
+
+const checkValidDate = (dateStr) => {   //YYYY-MM-DD format
+  if (!dateStr || dateStr.length !== 10){ return false; }
+  let year = /\d{4}/.test(dateStr.substring(0,4)) ? parseInt(dateStr.substring(0,4), 10) : "not a number";
+  let dash1 = dateStr.charAt(4);
+  let month = /\d{2}/.test(dateStr.substring(5,7)) ? parseInt(dateStr.substring(5,7), 10) : "not a number";
+  let dash2 = dateStr.charAt(7);
+  let day = /\d{2}/.test(dateStr.substring(5,7)) ? parseInt(dateStr.substring(8), 10) : "not a number";
+  if (dash1 !== "-" || dash2 !== "-" || year == "not a number" || month == "not a number" || day == "not a number" ){ return false; }
+  if (day < 1 || month < 1){ return false; }
+  if (day > 31 || month > 12 || ([4, 6, 9, 11].indexOf(month) > -1 && day > 30)){ return false; }
+  if ((year%4 == 0 && month == 2 && day > 29) || (year%4 !== 0 && month == 2 && day > 28)){ return false; }
+  return true;
+}
+
+const stateToRealm = {name: 'name', birthday: 'birthday', allergyField: 'name', allergyDetailsField: 'details', conditionField: 'name', conditionDetailsField: 'details', tradeNameField: 'tradeName', chemicalNameField: 'chemicalName', strengthField: 'strength', unitField: 'unit', directionsField: 'directions', purposeField: 'purpose', notesField: 'notes', prescriberField: 'prescriber', imageLocationField: 'imageLocation'};
+
+const returnPrimaryStateKey = (keys) => {
+  const primaryRealmKeys = ['name', 'allergyField', 'conditionField', 'tradeNameField'];
+  let primeKey;
+  keys.forEach((key)=>{
+    primaryRealmKeys.forEach((primaryKey)=>{
+      if (primaryKey == key){ primeKey = key; }
+    });
+  });
+  return primeKey;
+}
+
+const checkInputCorrect = (state, data) => {    
+  let cannotBeEmpty = ['name', 'birthday', 'allergyField', 'conditionField', 'tradeNameField']; 
+  let mustBeUnique = ['name', 'allergyField', 'conditionField', 'tradeNameField'];
+  let mustBeDate = ['birthday'];
+  let mustBeNumber = ['strengthField']; 
+  let errorMessage = "";
+  data.keys.forEach((key) => {
+    if ( cannotBeEmpty.indexOf(key) > -1 && ( !state[data.root][key] || !/\S/.test(state[data.root][key]) ) ){
+      errorMessage = errorMessage.concat(`${key} cannot be empty. `);
+    } else if ( data.root == 'createProfileComponent' && key == 'name'){
+      let patients = state.realm.objects('User');
+      patients.forEach((patient)=>{ errorMessage = (patient.name == state[data.root][key]) ? errorMessage.concat(`${state[data.root][key]} already exists. `) : errorMessage; }); 
+    } else if ( mustBeDate.indexOf(key) > -1 ){
+      errorMessage = checkValidDate(state[data.root][key]) ? errorMessage : errorMessage.concat(`${key} must be YYYY-MM-DD format. `);   
+    } else if ( mustBeUnique.indexOf(key) > -1 && !data.which ){
+      let list = state.realm.objects('User').filtered(`name='${data.whose}'`)[0][data.what];
+      list.forEach((item) => {
+        errorMessage = item[stateToRealm[key]] == state[data.root][key] ? errorMessage.concat(`${state[data.root][key]} already exists. `) : errorMessage;
+      });
+    } else if ( mustBeNumber.indexOf(key) > -1 ){
+      errorMessage = ( state[data.root][key] && /[^0-9]/.test(state[data.root][key]) ) ? errorMessage.concat('Must be a number. ') : errorMessage;
+    } 
+  });
+  return errorMessage;
+}
+
+const clearInputFields = (updateState, root, keys) => { keys.forEach((key)=>{ updateState('by path and value', {path: root+"."+key, value: null}); }); }
+
+const saveToRealm = async (state, updateState, updateRealm, data) => {
+  let error = checkInputCorrect(state, data);
+  if (error){ updateState('by path and value', {path: 'message', value: error}); }
+  else { await updateRealm('save', data); clearInputFields(updateState, data.root, data.keys); updateState('by path and value', {path: 'render.editMedication', value: false}); }
+}
+//End of miscellaneous functions
 
 class App extends Component {
   constructor(props) {
@@ -419,7 +504,6 @@ class App extends Component {
         conditionDetailsField: null
       },
       medlistComponent: {
-        medicationField: null,
         tradeNameField: null,
         chemicalNameField: null,
         strengthField: null,
@@ -445,63 +529,14 @@ class App extends Component {
 
   async updateState(instruction, data) {
     switch(instruction) {
-      case 'profile saved':
-        this.setState(prevState => {
-          let createProfileComponent = JSON.parse(JSON.stringify(prevState.createProfileComponent));
-          createProfileComponent.name = null;
-          createProfileComponent.birthday = null; 
-          return { createProfileComponent: createProfileComponent, screen: 'home', message: null };                              
-        });
+      case 'save':
+        saveToRealm(this.state, this.updateState, this.updateRealm, data);
         break;
-      case 'save allergy details':
-        let textExists3= /\S/.test(this.state.profileComponent.allergyDetailsField);
-        if (textExists3){
-          await this.updateRealm('save allergy details', data); 
-          this.setState(prevState => {
-            let render = JSON.parse(JSON.stringify(prevState.render));
-            render.editAllergyDetails = false;                  
-            return { render };                                
-          });
-        } else {
-          this.setState({message: "Cannot be empty"});
-        }
-        break;
-      case 'save condition details':
-        let textExists2 = /\S/.test(this.state.profileComponent.conditionDetailsField);
-        if (textExists2){
-          await this.updateRealm('save condition details', data); 
-          this.setState(prevState => {
-            let render = JSON.parse(JSON.stringify(prevState.render));
-            render.editConditionDetails = false;                  
-            return { render };                                
-          });
-        } else {
-          this.setState({message: "Cannot be empty"});
-        }
-        break; 
       case 'load medication fields':
         let keys = Object.keys(data);
         keys.forEach((field)=>{
           this.updateState('by path and value', {path: `medlistComponent.${field}Field`, value: data[field]});
         });
-        break;
-      case 'save medication':
-        let stateProp = data.stateProp;
-        let fields = data.fields;
-        let incorrectInputMessage = "";
-        fields.forEach((field)=>{
-          if (field == 'strengthField' && this.state[stateProp][field] && /[^0-9]/.test(this.state[stateProp][field]) ){ incorrectInputMessage = incorrectInputMessage.concat(`${field} must be a number. `); }
-        });
-        if (incorrectInputMessage == ""){
-          await this.updateRealm('save medication', data); 
-          this.setState(prevState => {
-            let render = JSON.parse(JSON.stringify(prevState.render));
-            render.editMedication = false;                  
-            return { render: render, message: null };                                
-          });
-        } else {
-          this.setState({message: incorrectInputMessage});
-        }
         break;
       case 'delete':
         this.updateRealm('delete', data);
@@ -510,53 +545,49 @@ class App extends Component {
           this.setState({screen: 'home'});
         }
         break;
-      case 'add to list':
-        let notEmpty = /\S/.test(this.state[data.component][data.field]);
-        if (notEmpty && this.state[data.component][data.field]){
-          await this.updateRealm('add to list', data); 
-          this.setState(prevState => {
-            let component = JSON.parse(JSON.stringify(prevState[data.component]));
-            component[data.field] = null;                                
-            return { [data.component]: component };                                
-          });
-        } else {
-          this.setState({message: "Cannot be empty"});
-        }
-        break;
       case 'by path and value':
         let path = data.path.split(".");
         let root = path.shift();
         let value = (path[0] == 'strengthField' && data.value) ? data.value.toString() : data.value; 
         this.setState(prevState => {
           let rootProp = JSON.parse(JSON.stringify(prevState[root]));
-          if (path.length == 0){ rootProp = value; } else { rootProp[eval(path)] = value; }
-          return { [root]: rootProp };                                
+          return { [root]: changeObjectByPath(rootProp, path, value) };                                
         });
         break;
     }
   }
 
   updateRealm(instruction, data){
-    function validateDate(dateStr){
-      //YYYY-MM-DD format
-      if (!dateStr || dateStr.length !== 10){ return false; }
-      let year = /\d{4}/.test(dateStr.substring(0,4)) ? parseInt(dateStr.substring(0,4), 10) : "not a number";
-      let dash1 = dateStr.charAt(4);
-      let month = /\d{2}/.test(dateStr.substring(5,7)) ? parseInt(dateStr.substring(5,7), 10) : "not a number";
-      let dash2 = dateStr.charAt(7);
-      let day = /\d{2}/.test(dateStr.substring(5,7)) ? parseInt(dateStr.substring(8), 10) : "not a number";
-      if (dash1 !== "-" || dash2 !== "-" || year == "not a number" || month == "not a number" || day == "not a number" ){ return false; }
-      if (day < 1 || month < 1){ return false; }
-      if (day > 31 || month > 12 || ([4, 6, 9, 11].indexOf(month) > -1 && day > 30)){ return false; }
-      if ((year%4 == 0 && month == 2 && day > 29) || (year%4 !== 0 && month == 2 && day > 28)){ return false; }
-      return true;
-    }
-
     Realm.open({
       schema: schemas
     }).then(realm => {
       realm.write(() => {
         switch(instruction){
+          case 'save':
+            let objectToSave = {};
+            let newPatient = (data.root == 'createProfileComponent') ? true : false;
+            let patient = newPatient ? this.state[data.root].name : data.whose; 
+            let primaryStateKey = returnPrimaryStateKey(data.keys); 
+            objectToSave.name = patient; 
+            if (newPatient){ objectToSave.birthday = this.state[data.root].birthday + "T00:00:00Z"; this.setState({screen: 'home'}); }
+            else {
+              let didUpdateList = false; 
+              let listToUpdate = this.state.realm.objects('User').filtered(`name='${patient}'`)[0][data.what];
+              listToUpdate = listToUpdate.map((item)=>{
+                if (item[stateToRealm[primaryStateKey]] == data.which) {
+                  data.keys.forEach((key)=>{
+                    if (key == 'strengthField'){ item[stateToRealm[key]] = this.state[data.root][key] ? parseInt(this.state[data.root][key], 10) : 0;}
+                    else {item[stateToRealm[key]] = this.state[data.root][key];}
+                  });
+                  didUpdateList = true;
+                  return item;
+                } else { return item; }
+              });
+              if (!didUpdateList) { listToUpdate.push({[stateToRealm[primaryStateKey]]: this.state[data.root][primaryStateKey]}); }
+              objectToSave[data.what] = listToUpdate; 
+            } 
+            realm.create('User', objectToSave, !newPatient);
+            break;
           case 'delete':
             if (data.what == 'profile') { 
               let medlist = this.state.realm.objects('User').filtered(`name='${data.which}'`)[0].medlist; 
@@ -568,74 +599,11 @@ class App extends Component {
               let list = this.state.realm.objects('User').filtered(`name='${data.whose}'`)[0][data.what]; 
               let index;
               list.forEach((item, i)=>{ if(item.name == data.which || item.tradeName == data.which){ index = i; } });
+              if (data.what == 'medlist') { deletePreviousImage(list[index].imageLocation); }
               list.splice(index, 1);
               realm.create('User', {name: data.whose, [data.what]: list}, true);
             }
             break;
-          case 'save new profile':
-            let validDate = validateDate(this.state.createProfileComponent.birthday);
-            let birthday = validDate ? new Date(this.state.createProfileComponent.birthday + "T10:59:30Z") : null;
-            let name = this.state.createProfileComponent.name? this.state.createProfileComponent.name : null;
-            if (!birthday || !name){
-              let message = "The following fields have been entered incorrectly: ";
-              message = !birthday ? message.concat("birthday (must be YYYY-MM-DD), ") : message;
-              message = !name ? message.concat("name (must not be empty), ") : message;
-              this.setState({message: message});
-              break; 
-            }
-            realm.create('User', {
-              name: name,
-              birthday: birthday
-            });
-            this.updateState('profile saved', this.state);
-            break;
-          case 'add to list':
-            const fieldToSave = {allergyField: {listName: 'allergies', itemName: 'name'}, conditionField: {listName: 'conditions', itemName: 'name'}, medicationField: {listName: 'medlist', itemName: 'tradeName'}}; 
-            let list = this.state.realm.objects('User').filtered(`name='${this.state.profileComponent.currentProfile}'`)[0][fieldToSave[data.field].listName];
-            list.push({[fieldToSave[data.field].itemName]: this.state[data.component][data.field]});
-            realm.create('User', {name: this.state.profileComponent.currentProfile, [fieldToSave[data.field].listName]: list}, true);
-            break;
-          case 'save condition details':
-            let conditionList2 = this.state.realm.objects('User').filtered(`name='${this.state.profileComponent.currentProfile}'`)[0].conditions;
-            conditionList2 = conditionList2.map((condition, i)=>{
-              if (condition.name == data){
-                return {name: data, details: this.state.profileComponent.conditionDetailsField};
-              } else {
-                return condition; 
-              }
-            });
-            realm.create('User', {name: this.state.profileComponent.currentProfile, conditions: conditionList2}, true);
-            break;
-          case 'save allergy details':
-            let allergyList2 = this.state.realm.objects('User').filtered(`name='${this.state.profileComponent.currentProfile}'`)[0].allergies;
-            allergyList2 = allergyList2.map((allergy, i)=>{
-              if (allergy.name == data){
-                return {name: data, details: this.state.profileComponent.allergyDetailsField};
-              } else {
-                return allergy; 
-              }
-            });
-            realm.create('User', {name: this.state.profileComponent.currentProfile, allergies: allergyList2}, true);
-            break;
-          case 'save medication':
-            let medlist2 = this.state.realm.objects('User').filtered(`name='${this.state.profileComponent.currentProfile}'`)[0].medlist;
-            medlist2 = medlist2.map((medication, i)=>{
-              if (medication.tradeName == data.prevTradeName){
-                data.fields.forEach((field)=>{
-                  if (field == 'strengthField' && this.state[data.stateProp][field]){
-                    medication[field.replace('Field', '')] = parseInt(this.state[data.stateProp][field], 10);
-                  } else if (field == 'strengthField' && !this.state[data.stateProp][field]) {
-                    medication[field.replace('Field', '')] = 0;
-                  } else {
-                    medication[field.replace('Field', '')] = this.state[data.stateProp][field];
-                  }
-                });
-                return medication;
-              } else {
-                return medication; 
-              }
-            });
-            realm.create('User', {name: this.state.profileComponent.currentProfile, medlist: medlist2}, true);
         }
       });
       this.setState({ realm });
@@ -651,6 +619,7 @@ class App extends Component {
         {renderMedlist(this.state, this.updateState)}
         {renderTakePicture(this.state, this.updateState)}
         <Button title="Home" onPress={()=>{this.updateState('by path and value', {path: 'screen', value: 'home'})}} />
+        <Button title='Purge images' onPress={()=>{purgeUnsavedImages();}} />
         <Text>{this.state.message}</Text>
       </ScrollView>
     );
