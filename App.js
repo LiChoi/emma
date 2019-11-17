@@ -421,6 +421,20 @@ const changeObjectByPath = (obj, path, value) => {
   }
   return obj;
 }
+
+const checkValidDate = (dateStr) => {   //YYYY-MM-DD format
+  if (!dateStr || dateStr.length !== 10){ return false; }
+  let year = /\d{4}/.test(dateStr.substring(0,4)) ? parseInt(dateStr.substring(0,4), 10) : "not a number";
+  let dash1 = dateStr.charAt(4);
+  let month = /\d{2}/.test(dateStr.substring(5,7)) ? parseInt(dateStr.substring(5,7), 10) : "not a number";
+  let dash2 = dateStr.charAt(7);
+  let day = /\d{2}/.test(dateStr.substring(5,7)) ? parseInt(dateStr.substring(8), 10) : "not a number";
+  if (dash1 !== "-" || dash2 !== "-" || year == "not a number" || month == "not a number" || day == "not a number" ){ return false; }
+  if (day < 1 || month < 1){ return false; }
+  if (day > 31 || month > 12 || ([4, 6, 9, 11].indexOf(month) > -1 && day > 30)){ return false; }
+  if ((year%4 == 0 && month == 2 && day > 29) || (year%4 !== 0 && month == 2 && day > 28)){ return false; }
+  return true;
+}
 //End of miscellaneous functions
 
 class App extends Component {
@@ -563,21 +577,6 @@ class App extends Component {
   }
 
   updateRealm(instruction, data){
-    function validateDate(dateStr){
-      //YYYY-MM-DD format
-      if (!dateStr || dateStr.length !== 10){ return false; }
-      let year = /\d{4}/.test(dateStr.substring(0,4)) ? parseInt(dateStr.substring(0,4), 10) : "not a number";
-      let dash1 = dateStr.charAt(4);
-      let month = /\d{2}/.test(dateStr.substring(5,7)) ? parseInt(dateStr.substring(5,7), 10) : "not a number";
-      let dash2 = dateStr.charAt(7);
-      let day = /\d{2}/.test(dateStr.substring(5,7)) ? parseInt(dateStr.substring(8), 10) : "not a number";
-      if (dash1 !== "-" || dash2 !== "-" || year == "not a number" || month == "not a number" || day == "not a number" ){ return false; }
-      if (day < 1 || month < 1){ return false; }
-      if (day > 31 || month > 12 || ([4, 6, 9, 11].indexOf(month) > -1 && day > 30)){ return false; }
-      if ((year%4 == 0 && month == 2 && day > 29) || (year%4 !== 0 && month == 2 && day > 28)){ return false; }
-      return true;
-    }
-
     Realm.open({
       schema: schemas
     }).then(realm => {
@@ -600,7 +599,7 @@ class App extends Component {
             }
             break;
           case 'save new profile':
-            let validDate = validateDate(this.state.createProfileComponent.birthday);
+            let validDate = checkValidDate(this.state.createProfileComponent.birthday);
             let birthday = validDate ? new Date(this.state.createProfileComponent.birthday + "T10:59:30Z") : null;
             let name = this.state.createProfileComponent.name? this.state.createProfileComponent.name : null;
             if (!birthday || !name){
