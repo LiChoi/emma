@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Platform, StyleSheet, Text, View, TouchableOpacity, Image, ScrollView, TextInput, Button } from 'react-native';
+import { Platform, StyleSheet, Text, View, TouchableOpacity, TouchableHighlight, Image, ScrollView, TextInput, Button } from 'react-native';
 import { RNCamera } from 'react-native-camera';
 const RNFS = require('react-native-fs');
 
@@ -52,15 +52,29 @@ const medicationSchema = {
 const schemas = [userSchema, conditionSchema, allergySchema, medicationSchema];
 //End of realm constants
 
+//Beginning of message component
+const renderMessage = (state, updateState) => {
+  if (state.message){
+    return (
+      <View style={styles.messageContainer}>
+        <Text style={styles.messageText}>{state.message}</Text>
+        <TouchableHighlight underlayColor='rgba(0,155,110,0.8)' style={styles.barButton} onPress={()=>{updateState('by path and value', {path: 'message', value: null})}}><Text style={styles.buttonText}>CLOSE MESSAGE</Text></TouchableHighlight>
+      </View>
+    );
+  }
+}
+//End of message component
+
 //Beginning of renderHome component and its subcomponents
 const renderHome = (state, updateState) => {
   if (state.screen == 'home'){
     return (
       <View style={styles.home}>
-        <Text>Select a profile</Text>
+        {/*<Text style={styles.label}>Select a profile:{'\n'}</Text>*/}
         {loadProfiles(state, updateState)}
-        <Text>Create new profile</Text>
-        <Button title="new" onPress={()=>{updateState('by path and value', {path: 'screen', value: 'createProfile'})}} />
+        {/*<Text>Create new profile</Text>*/}
+        {/*<Button title="new" onPress={()=>{updateState('by path and value', {path: 'screen', value: 'createProfile'})}} />*/}
+        <TouchableHighlight underlayColor='rgba(0,155,110,0.8)' style={styles.barButton} onPress={()=>{updateState('by path and value', {path: 'screen', value: 'createProfile'})}}><Text style={styles.buttonText}>CREATE NEW PROFILE</Text></TouchableHighlight>
       </View>
     );
   }
@@ -71,21 +85,22 @@ const loadProfiles = (state, updateState) => {
     let users = state.realm.objects('User');
     if (users.length > 0){
       return (
-        <View>
+        <View style={{width: '100%'}}>
           {
             users.map((user, i)=>{
               return(
-                <Button key={"username "+i} title={user.name} onPress={()=>{updateState('by path and value', {path: 'screen', value: 'profile'}); updateState('by path and value', {path: 'profileComponent.currentProfile', value: user.name})}} />
+                //<Button key={"username "+i} title={user.name} onPress={()=>{updateState('by path and value', {path: 'screen', value: 'profile'}); updateState('by path and value', {path: 'profileComponent.currentProfile', value: user.name})}} />
+              <TouchableHighlight underlayColor='rgba(0,155,110,0.8)' style={styles.barButton} key={"username "+i} onPress={()=>{updateState('by path and value', {path: 'screen', value: 'profile'}); updateState('by path and value', {path: 'profileComponent.currentProfile', value: user.name})}} ><Text style={styles.buttonText}>{user.name.toUpperCase()}</Text></TouchableHighlight>
               );
             })
           }
         </View>
       );
-    } else {
+    } /*else {
       return (
-        <Text>No profile found</Text>
+        <Text style={styles.innerText}>No profile found</Text>
       )
-    }
+    }*/
   } else {
     return (
       <Text>Loading...</Text>
@@ -535,7 +550,7 @@ class App extends Component {
       case 'load medication fields':
         let keys = Object.keys(data);
         keys.forEach((field)=>{
-          this.updateState('by path and value', {path: `medlistComponent.${field}Field`, value: data[field]});
+          this.updateState('by path and value', {path: `medlistComponent.${field}Field`, value: (field == 'strength' && data[field]) ? data[field].toString() : data[field] });
         });
         break;
       case 'delete':
@@ -613,14 +628,16 @@ class App extends Component {
   render() {
     return (
       <ScrollView style={styles.appContainer}>
+        {renderMessage(this.state, this.updateState)}
         {renderHome(this.state, this.updateState)}
         {createProfile(this.state, this.updateState, this.updateRealm)}
         {renderProfile(this.state, this.updateState)}
         {renderMedlist(this.state, this.updateState)}
         {renderTakePicture(this.state, this.updateState)}
-        <Button title="Home" onPress={()=>{this.updateState('by path and value', {path: 'screen', value: 'home'})}} />
-        <Button title='Purge images' onPress={()=>{purgeUnsavedImages();}} />
-        <Text>{this.state.message}</Text>
+        {/*<Button color='rgba(0, 155, 95, 1)' title="Home" onPress={()=>{this.updateState('by path and value', {path: 'screen', value: 'home'})}} />*/}
+        {this.state.screen !== 'home' ? <TouchableHighlight underlayColor='rgba(0,155,110,0.8)' style={styles.barButton} onPress={()=>{this.updateState('by path and value', {path: 'screen', value: 'home'})}}><Text style={styles.buttonText}>HOME</Text></TouchableHighlight> : null } 
+        {/*<Button title='Purge images' onPress={()=>{purgeUnsavedImages();}} />*/}
+        {/*<View style={styles.messageContainer}><Text style={styles.messageText}>{this.state.message}</Text></View>*/}
       </ScrollView>
     );
   }
@@ -628,12 +645,16 @@ class App extends Component {
 
 const styles = StyleSheet.create({
   appContainer: {
-    flex: 1
+    flex: 1,
+    backgroundColor: 'rgba(235, 255, 235, 1)',
   },
   home: {
     flex: 1, 
     justifyContent: 'center', 
-    alignItems: 'center'
+    alignItems: 'center',
+    //backgroundColor: 'white',
+    paddingTop: 50,
+    //paddingBottom: 50
   },
   camera: {
     height: 500,
@@ -657,6 +678,43 @@ const styles = StyleSheet.create({
     height: 200,
     width: 200,
     backgroundColor: 'red'
+  },
+  messageContainer: {
+    //backgroundColor: 'rgba(255, 255, 255, 1)',
+    borderRadius: 10,
+    borderWidth: 3,
+    borderColor: 'rgba(255, 0, 0, 1)'
+  },
+  messageText: {
+    color: 'red',
+    fontSize: 18,
+    paddingHorizontal: 20,
+    textAlign: 'center'
+  },
+  barButton: {
+    height: 50,
+    width: '100%',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 155, 110, 1)',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 1)'
+  },
+  buttonText: {
+    textAlign: 'center',
+    color: 'white',
+    fontWeight: 'bold'
+  },
+  label: {
+    fontSize: 25,
+    color: 'rgba(0, 155, 110, 1)',
+    fontWeight: 'bold'
+  },
+  innerText: {
+    color: 'rgba(0, 155, 110, 1)',
+    fontSize: 18,
+    paddingTop: 50,
+    paddingBottom: 50
   }
 });
 
