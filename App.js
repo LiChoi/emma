@@ -95,6 +95,7 @@ const renderHome = (state, updateState) => {
       <View style={styles.home}>
         {loadProfiles(state, updateState)}
         <BarButton title="Create new profile" onPress={()=>{updateState('by path and value', {path: 'screen', value: 'createProfile'})}} />
+        <Text></Text><Text></Text><Text></Text><Text></Text>
       </View>
     );
   }
@@ -128,7 +129,7 @@ const loadProfiles = (state, updateState) => {
 const createProfile = (state, updateState, updateRealm) => {
   if (state.screen == 'createProfile'){
     return (
-      <View>
+      <View style={styles.createProfile}>
         <TextInput
           placeholder="Enter name"
           onChangeText={(text) => {updateState('by path and value', {path: 'createProfileComponent.name', value: text});}}
@@ -140,6 +141,7 @@ const createProfile = (state, updateState, updateRealm) => {
           value={state.createProfileComponent.birthday}  
         />
         <BarButton title="Submit" onPress={()=>{updateState('save', {root: 'createProfileComponent', keys: Object.keys(state.createProfileComponent) })}} />
+        <Text></Text>
       </View>
     );
   }
@@ -676,7 +678,8 @@ class App extends Component {
 
   render() {
     return (
-      <ScrollView style={styles.appContainer}>
+      <View style={styles.scrollContainer}>
+      <ScrollView style={styles.appContainer} contentContainerStyle={{flexGrow: 1}}>
         {renderMessage(this.state, this.updateState)}
         {renderHome(this.state, this.updateState)}
         {createProfile(this.state, this.updateState, this.updateRealm)}
@@ -686,20 +689,30 @@ class App extends Component {
         {this.state.screen !== 'home' ? <BarButton color='rgba(0, 155, 95, 1)' title="Home" onPress={()=>{this.updateState('by path and value', {path: 'screen', value: 'home'})}} /> : null } 
         {/*<Button title='Purge images' onPress={()=>{purgeUnsavedImages();}} />*/}
       </ScrollView>
+      </View>
     );
   }
 }
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flex: 1,
+    padding: 15,
+  },
   appContainer: {
     flex: 1,
     backgroundColor: 'rgba(235, 255, 235, 1)',
+    borderRadius: 20
   },
   home: {
     flex: 1, 
     justifyContent: 'center', 
     alignItems: 'center',
     paddingTop: 50,
+  },
+  createProfile: {
+    flex: 1,
+    justifyContent: 'center'
   },
   cameraContainer: {
     flex: 1,
