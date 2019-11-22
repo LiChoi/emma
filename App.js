@@ -406,7 +406,6 @@ const renderTakePicture = (state, updateState) =>{
             buttonNegative: 'Cancel',
           }}
           captureAudio={false}
-          //ratio="1:1" //Not all aspect ratios are supported. There's a function that returns list of supported ratios.
         >
           {({ camera, status }) => {
             if (status !== 'READY') return <PendingView />;
@@ -698,6 +697,7 @@ const styles = StyleSheet.create({
   scrollContainer: {
     flex: 1,
     padding: 15,
+    backgroundColor: 'rgba(235, 255, 235, 1)',
   },
   appContainer: {
     flex: 1,
