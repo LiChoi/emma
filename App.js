@@ -414,7 +414,7 @@ const toggleEditMedication = (state, updateState, medication) => {
         <Text style={styles.innerText}>Notes:</Text>
         {toggleMedicationField(state, updateState, 'notes')}
         <Text style={styles.innerText}>Image:</Text>
-        <Image style={styles.image} source={{uri: state.medlistComponent.imageLocationField}} />
+        <View style={{alignItems: 'center'}}>{state.medlistComponent.imageLocationField ? <Image style={styles.image} source={{uri: state.medlistComponent.imageLocationField}} /> : null}</View>
         <TextButton title='Take Picture' onPress={()=>{updateState('by path and value', {path: 'screen', value: 'takePicture'})}} />
         <TextButton title='Save' onPress={()=>{updateState('save', {what: 'medlist', whose: state.profileComponent.currentProfile, which: medication.tradeName, root: 'medlistComponent', keys: Object.keys(state.medlistComponent)}); }} />
       </View>
@@ -429,7 +429,7 @@ const toggleEditMedication = (state, updateState, medication) => {
         <Text style={styles.innerText}>Directions: {medication.directions}</Text>
         <Text style={styles.innerText}>Notes: {medication.notes}</Text>
         <Text style={styles.innerText}>Image:</Text>
-        <Image style={styles.image} source={{uri: medication.imageLocation}} />
+        <View  style={{alignItems: 'center'}}>{medication.imageLocation ? <Image style={styles.image} source={{uri: medication.imageLocation}} /> : null }</View>
         <TextButton title='Edit' onPress={()=>{updateState('by path and value', {path: 'render.editMedication', value: medication.tradeName}); updateState('load medication fields', medication); deletePreviousImage(state.medlistComponent.imageLocationField);}} />
       </View>
     );     
@@ -483,7 +483,6 @@ const PendingView = () => (
   <View
     style={{
       flex: 1,
-      backgroundColor: 'lightgreen',
       justifyContent: 'center',
       alignItems: 'center',
     }}
@@ -777,6 +776,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
     alignItems: 'center',
+    opacity: 0.5
   },
   capture: {
     flex: 0,
@@ -789,10 +789,10 @@ const styles = StyleSheet.create({
   },
   image: {
     flex: 1,
-    height: 200,
-    width: 200,
+    height: 150,
+    width: 150,
     backgroundColor: 'red',
-    marginLeft: 5
+    marginTop: 5
   },
   messageContainer: {
     borderRadius: 10,
