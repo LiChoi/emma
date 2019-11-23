@@ -333,7 +333,7 @@ const renderMedlist = (state, updateState) => {
           state.realm.objects('User').filtered(`name='${state.profileComponent.currentProfile}'`)[0].medlist.map((medication, i)=>{
             return (
               <View style={styles.border} key={medication.tradeName + i}>
-                {toggleEditMedication(state, updateState, medication)}
+                <Medication state={state} updateState={updateState} medication={medication} />
               </View>
             );
           })
@@ -341,6 +341,26 @@ const renderMedlist = (state, updateState) => {
         <Text></Text>
         {renderAddMedication(state, updateState)}
         <BarButton title='Back to profile' onPress={()=>{updateState('by path and value', {path: 'screen', value: 'profile'})}} />
+      </View>
+    );
+  }
+}
+
+class Medication extends Component {
+  constructor(props){
+    super(props);
+    this.toggleExpand = this.toggleExpand.bind(this);
+  }
+
+  toggleExpand() {
+    this.props.state.render[this.props.medication.tradeName] ? this.props.updateState('by path and value', {path: `render.${this.props.medication.tradeName}`, value: false}) : this.props.updateState('by path and value', {path: `render.${this.props.medication.tradeName}`, value: true});
+  }
+
+  render() {
+    return (
+      <View>
+        <BarButton title={this.props.medication.tradeName} onPress={ ()=>{ this.toggleExpand() }} />
+        { this.props.state.render[this.props.medication.tradeName] ? toggleEditMedication(this.props.state, this.props.updateState, this.props.medication) : null }
       </View>
     );
   }
@@ -378,7 +398,6 @@ const toggleEditMedication = (state, updateState, medication) => {
   if (state.render.editMedication == medication.tradeName) {
     return (
       <View>
-        <Text style={[styles.name, {fontSize: 20}]}>{state.medlistComponent.tradeNameField}</Text>
         <TextInput style={styles.textInput} placeholder='Type "Delete" to delete' onChangeText={(text)=>{ text == 'Delete' ? updateState('delete', {what: 'medlist', whose: state.profileComponent.currentProfile, which: medication.tradeName}) : null; text == 'Delete' ? updateState('by path and value', {path: 'render.editMedication', value: false}) : null; text == 'Delete' ? updateState('by path and value', {path: 'medlistComponent.tradeNameField', value: null}) : null }} />
         <Text style={styles.innerText}>Chemical name:</Text>
         {toggleMedicationField(state, updateState, 'chemicalName')}
@@ -403,7 +422,6 @@ const toggleEditMedication = (state, updateState, medication) => {
   } else {
     return (
       <View>
-        <Text style={[styles.name, {fontSize: 20}]}>{medication.tradeName}</Text>
         <Text style={styles.innerText}>Chemical name: {medication.chemicalName}</Text>
         <Text style={styles.innerText}>Strength: {medication.strength+medication.unit}</Text>
         <Text style={styles.innerText}>Used for: {medication.purpose}</Text>
