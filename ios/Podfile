@@ -36,7 +36,6 @@ target 'emma' do
 
   pod 'react-native-camera', :path => '../node_modules/react-native-camera'
 
-  pod 'react-native-mail', :path => '../node_modules/react-native-mail'
 
   target 'emmaTests' do
     inherit! :search_paths

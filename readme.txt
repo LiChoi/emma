@@ -5,3 +5,5 @@ Then, in the terminal, while inside Emma folder, run this command:  react-native
 
 When installing react-native-fs dependency, followed instructions on https://www.npmjs.com/package/react-native-fs/v/1.2.0
 However, do not do the last step of adding anything to MainApplication.java. The auto-linking makes this step unnecessary.
+
+When installing react-native-email, simly did npm install... when try to link in terminal caused error, undid link and it works. So... just do npm install and it's good to go

@@ -180,7 +180,6 @@ android {
 }
 
 dependencies {
-    implementation project(':react-native-mail')
     implementation project(':react-native-fs')
     implementation project(':react-native-camera')
     implementation project(':realm')

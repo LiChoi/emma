@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Platform, StyleSheet, Text, View, TouchableOpacity, TouchableHighlight, Image, ScrollView, TextInput, Button } from 'react-native';
 import { RNCamera } from 'react-native-camera';
+import Mailer from 'react-native-mail';
 const RNFS = require('react-native-fs');
 
 //Beginning of realm constants
@@ -187,6 +188,21 @@ const renderProfile = (state, updateState) => {
         {renderAddCondition(state, updateState)}
         <Text>{'\n'}</Text>
         <BarButton title="View med list" onPress={()=>{updateState('by path and value', {path: 'screen', value: 'medlist'})}}/>
+        <BarButton title="Email Profile" onPress={()=>{handleEmail(
+          {
+            subject: "Profile", //String
+            recipients: [], //array of strings
+            ccRecipients: [], //array of strings
+            bccRecipients: [], //array of strings
+            body: composeEmail(state), //string
+            isHTML: false, //boolean
+            attachment: {
+              path: "",  // The absolute path of the file from which to read data.
+              type: "",   // Mime Type: jpg, png, doc, ppt, html, pdf, csv
+              name: "",   // Optional: Custom filename for attachment
+            }
+          }
+        )}} />
       </View>
     );
   }
@@ -416,7 +432,7 @@ const toggleEditMedication = (state, updateState, medication) => {
         <Text style={styles.innerText}>Image:</Text>
         <View style={{alignItems: 'center'}}>{state.medlistComponent.imageLocationField ? <Image style={styles.image} source={{uri: state.medlistComponent.imageLocationField}} /> : null}</View>
         <TextButton title='Take Picture' onPress={()=>{updateState('by path and value', {path: 'screen', value: 'takePicture'})}} />
-        <TextButton title='Save' onPress={()=>{updateState('save', {what: 'medlist', whose: state.profileComponent.currentProfile, which: medication.tradeName, root: 'medlistComponent', keys: Object.keys(state.medlistComponent)}); }} />
+        <TextButton title='Save' onPress={()=>{updateState('save', {what: 'medlist', whose: state.profileComponent.currentProfile, which: medication.tradeName, root: 'medlistComponent', keys: Object.keys(state.medlistComponent)}); deletePreviousImage(medication.imageLocation); }} />
       </View>
     );
   } else {
@@ -474,7 +490,6 @@ const renderTakePicture = (state, updateState) =>{
 const takePicture = async function(state, updateState, camera) {
   const options = { quality: 0.5, base64: true };
   const data = await camera.takePictureAsync(options);
-  deletePreviousImage(state.medlistComponent.imageLocationField);
   updateState('by path and value', {path: 'medlistComponent.imageLocationField', value: data.uri});
   updateState('by path and value', {path: 'screen', value: 'medlist'});
 }
@@ -516,7 +531,7 @@ const purgeUnsavedImages = () => {
 }
 //End of takePicture and its subcomponents
 
-//Miscellaneous functions and constants
+//Functions and constants used in updateState and updateRealm
 const changeObjectByPath = (obj, path, value) => {
   let build = obj;
   if (path.length == 0){ obj = value; } 
@@ -593,7 +608,59 @@ const saveToRealm = async (state, updateState, updateRealm, data) => {
   if (error){ updateState('by path and value', {path: 'message', value: error}); }
   else { await updateRealm('save', data); clearInputFields(state, updateState, data.root, data.keys); updateState('by path and value', {path: 'render.editMedication', value: false}); }
 }
-//End of miscellaneous functions
+//End of updateState and updateRealm functions
+
+//Email functions
+const handleEmail = (data) => {
+  Mailer.mail({
+    subject: data.subject, //String
+    recipients: data.recipients, //array of strings
+    ccRecipients: data.ccRecipients, //array of strings
+    bccRecipients: data.bccRecipients, //array of strings
+    body: data.body, //string
+    isHTML: data.isHTML, //boolean
+    attachment: {
+      path: data.attachment.path,  // The absolute path of the file from which to read data.
+      type: data.attachment.type,   // Mime Type: jpg, png, doc, ppt, html, pdf, csv
+      name: data.attachment.name,   // Optional: Custom filename for attachment
+    }
+  }, (error, event) => {
+    Alert.alert(
+      error,
+      event,
+      [
+        {text: 'Ok', onPress: () => console.log('OK: Email Error Response')},
+        {text: 'Cancel', onPress: () => console.log('CANCEL: Email Error Response')}
+      ],
+      { cancelable: true }
+    )
+  });
+}
+
+const composeEmail = (state) => {
+  let body = "";
+  let patient = state.profileComponent.currentProfile;
+  let profile = state.realm.objects('User').filtered(`name='${patient}'`)[0];
+  let profileKeys = Object.keys(profile);
+  profileKeys.forEach((key)=>{
+    if (profile[key] instanceof Date && profile.hasOwnProperty(key)){
+      body = body + `${key.toUpperCase()}: ${profile[key].toDateString().slice(4)} \n`;
+    } else if (profile[key] instanceof Object && profile.hasOwnProperty(key)){
+      body = body + `${key.toUpperCase()}: \n`;
+      profile[key].forEach((item)=>{
+        let subKeys = Object.keys(item);
+        subKeys.forEach((subKey,i)=>{
+          body = ( item.hasOwnProperty(subKey) && subKey !== 'imageLocation' ) ? body + `${subKey.toUpperCase()}: ${item[subKey]} \n` : body;
+          if (i == subKeys.length - 1){ body = body + '\n'; }
+        });
+      });
+    } else {
+      body = body + `${key.toUpperCase()}: ${profile[key]} \n`;
+    }
+  });
+  return body;
+}
+// End of email functions 
 
 class App extends Component {
   constructor(props) {
@@ -719,7 +786,7 @@ class App extends Component {
       });
       this.setState({ realm });
     });
-  }
+  } 
 
   render() {
     return (
