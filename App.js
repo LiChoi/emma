@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Platform, StyleSheet, Text, View, TouchableOpacity, Image, ScrollView, TextInput, Button } from 'react-native';
+import { Platform, StyleSheet, Text, View, TouchableOpacity, TouchableHighlight, Image, ScrollView, TextInput, Button } from 'react-native';
 import { RNCamera } from 'react-native-camera';
 const RNFS = require('react-native-fs');
 
@@ -52,15 +52,69 @@ const medicationSchema = {
 const schemas = [userSchema, conditionSchema, allergySchema, medicationSchema];
 //End of realm constants
 
+//Beginning of minor common components
+const renderMessage = (state, updateState) => {
+  if (state.message){
+    return (
+      <View style={styles.messageContainer}>
+        <Text style={styles.messageText}>{state.message}</Text>
+        <BarButton title="Close" onPress={()=>{updateState('by path and value', {path: 'message', value: null})}} />
+      </View>
+    );
+  }
+}
+
+class BarButton extends Component {
+  render () {
+    const barButtonStyle = {
+      height: 50,
+      width: '100%',
+      justifyContent: 'center',
+      backgroundColor: 'rgba(0, 155, 110, 1)',
+      borderRadius: 10,
+      borderWidth: 1,
+      borderColor: 'rgba(255, 255, 255, 1)'
+    }; 
+    const buttonTextStyle = {
+      textAlign: 'center',
+      color: 'white',
+      fontWeight: 'bold'
+    };
+    const underlayColor = 'rgba(0,155,110,0.8)';
+    return (
+    <TouchableHighlight underlayColor={underlayColor} style={barButtonStyle} onPress={this.props.onPress} ><Text style={buttonTextStyle}>{this.props.title.toUpperCase()}</Text></TouchableHighlight>
+    );
+  }
+}
+
+class TextButton extends Component {
+  render () {
+    const textButtonStyle = {
+      height: 50,
+      width: '100%',
+      justifyContent: 'center',
+    }; 
+    const buttonTextStyle = {
+      textAlign: 'center',
+      color: 'rgba(0, 155, 110, 1)',
+      fontWeight: 'bold'
+    };
+    const underlayColor = 'rgba(0,155,110,0.8)';
+    return (
+    <TouchableHighlight underlayColor={underlayColor} style={textButtonStyle} onPress={this.props.onPress} ><Text style={buttonTextStyle}>{this.props.title.toUpperCase()}</Text></TouchableHighlight>
+    );
+  }
+}
+//End of common components
+
 //Beginning of renderHome component and its subcomponents
 const renderHome = (state, updateState) => {
   if (state.screen == 'home'){
     return (
       <View style={styles.home}>
-        <Text>Select a profile</Text>
         {loadProfiles(state, updateState)}
-        <Text>Create new profile</Text>
-        <Button title="new" onPress={()=>{updateState('by path and value', {path: 'screen', value: 'createProfile'})}} />
+        <BarButton title="Create new profile" onPress={()=>{updateState('by path and value', {path: 'screen', value: 'createProfile'})}} />
+        <Text></Text><Text></Text><Text></Text><Text></Text>
       </View>
     );
   }
@@ -71,21 +125,17 @@ const loadProfiles = (state, updateState) => {
     let users = state.realm.objects('User');
     if (users.length > 0){
       return (
-        <View>
+        <View style={{width: '100%'}}>
           {
             users.map((user, i)=>{
               return(
-                <Button key={"username "+i} title={user.name} onPress={()=>{updateState('by path and value', {path: 'screen', value: 'profile'}); updateState('by path and value', {path: 'profileComponent.currentProfile', value: user.name})}} />
+                <BarButton key={"username "+i} title={user.name} onPress={()=>{updateState('by path and value', {path: 'screen', value: 'profile'}); updateState('by path and value', {path: 'profileComponent.currentProfile', value: user.name})}} />
               );
             })
           }
         </View>
       );
-    } else {
-      return (
-        <Text>No profile found</Text>
-      )
-    }
+    } 
   } else {
     return (
       <Text>Loading...</Text>
@@ -95,21 +145,24 @@ const loadProfiles = (state, updateState) => {
 //End of renderHome et al
 
 //Beginning of createProfileComponent and all its subcomponenets 
-const createProfile = (state, updateState, updateRealm) => {
+const createProfile = (state, updateState) => {
   if (state.screen == 'createProfile'){
     return (
-      <View>
+      <View style={styles.createProfile}>
         <TextInput
+          style={styles.textInput}
           placeholder="Enter name"
           onChangeText={(text) => {updateState('by path and value', {path: 'createProfileComponent.name', value: text});}}
           value={state.createProfileComponent.name} 
         />
         <TextInput
+          style={styles.textInput}
           placeholder="Birthday YYYY-MM-DD"
           onChangeText={(text)=>{updateState('by path and value', {path: 'createProfileComponent.birthday', value: text })}}
           value={state.createProfileComponent.birthday}  
         />
-        <Button title="Submit" onPress={()=>{updateState('save', {root: 'createProfileComponent', keys: Object.keys(state.createProfileComponent) })}} />
+        <BarButton title="Submit" onPress={()=>{updateState('save', {root: 'createProfileComponent', keys: Object.keys(state.createProfileComponent) })}} />
+        <Text></Text>
       </View>
     );
   }
@@ -121,28 +174,51 @@ const renderProfile = (state, updateState) => {
   if (state.screen == 'profile'){
     return (
       <View>
-        <Text>Name:</Text>
-        <Text>{state.profileComponent.currentProfile}</Text>
-        <Text>Birthday:</Text>
-        <Text>{state.realm.objects('User').map((user, i)=>{if(user.name == state.profileComponent.currentProfile){return user.birthday.toString();}})}</Text>
-        <Text>Allergies:</Text>
+        <Text style={styles.name}>{state.profileComponent.currentProfile}</Text>
+        <Text style={{textAlign: 'center'}}>{state.realm.objects('User').map((user, i)=>{if(user.name == state.profileComponent.currentProfile){return user.birthday.toDateString().slice(4);}})}</Text>
+        {deleteProfile(state, updateState)}
+        <Text>{'\n'}</Text>
+        <Text style={styles.label}>Allergies:</Text>
         {renderAllergyList(state, updateState)}
-        <TextInput 
+        {renderAddAllergy(state, updateState)}
+        <Text>{'\n'}</Text>
+        <Text style={styles.label}>Medical Conditions:</Text>
+        {renderConditionList(state, updateState)}
+        {renderAddCondition(state, updateState)}
+        <Text>{'\n'}</Text>
+        <BarButton title="View med list" onPress={()=>{updateState('by path and value', {path: 'screen', value: 'medlist'})}}/>
+      </View>
+    );
+  }
+}
+
+const renderAddAllergy = (state, updateState) => {
+  if (!state.render.editAllergyDetails){
+    return (
+      <View>
+         <TextInput 
+          style={styles.textInput}
           placeholder='Enter new allergy'
           onChangeText={(text)=>{updateState('by path and value', {path: 'profileComponent.allergyField', value: text })}}
           value={state.profileComponent.allergyField} 
         />
-        <Button title='Add allergy' onPress={()=>{updateState('save', {what: 'allergies', whose: state.profileComponent.currentProfile, root: 'profileComponent', keys: ['allergyField']}); }} />
-        <Text>Medical Conditions:</Text>
-        {renderConditionList(state, updateState)}
-        <TextInput 
-          placeholder='Enter a new condition'
+        <TextButton title='Add+' onPress={()=>{updateState('save', {what: 'allergies', whose: state.profileComponent.currentProfile, root: 'profileComponent', keys: ['allergyField']}); }} />
+      </View>
+    );
+  }
+}
+
+const renderAddCondition = (state, updateState) => {
+  if (!state.render.editConditionDetails){
+    return (
+      <View style={{alignItems: 'center'}}>
+          <TextInput 
+          style={styles.textInput}
+          placeholder='Enter new condition'
           onChangeText={(text)=>{updateState('by path and value', {path: 'profileComponent.conditionField', value: text })}}
           value={state.profileComponent.conditionField} 
         />
-        <Button title='Add condition' onPress={()=>{updateState('save', {what: 'conditions', whose: state.profileComponent.currentProfile, root: 'profileComponent', keys: ['conditionField']}); }} />
-        <Button title='View med list' onPress={()=>{updateState('by path and value', {path: 'screen', value: 'medlist'})}} />
-        {deleteProfile(state, updateState)}
+        <TextButton title="Add+" onPress={()=>{ updateState('save', {what: 'conditions', whose: state.profileComponent.currentProfile, root: 'profileComponent', keys: ['conditionField']}); }}/>
       </View>
     );
   }
@@ -151,14 +227,14 @@ const renderProfile = (state, updateState) => {
 const deleteProfile = (state, updateState) => {
   if (!state.render.deleteProfile){
     return (
-      <Button title='Delete profile' onPress={()=>{updateState('by path and value', {path: 'render.deleteProfile', value: true})}} />
+      <BarButton title="Delete profile" onPress={()=>{updateState('by path and value', {path: 'render.deleteProfile', value: true})}} />
     );
   } else {
     return (
-      <View>
-        <Text>Are you certain you want to permanently delete this profile?</Text>
-        <Button title="Yes, I'm sure" onPress={()=>{updateState('delete', {what: 'profile', which: state.profileComponent.currentProfile})}} />
-        <Button title='Do not delete' onPress={()=>{updateState('by path and value', {path: 'render.deleteProfile', value: false})}} />
+      <View style={styles.messageContainer}>
+        <Text style={styles.messageText}>Are you certain you want to permanently delete this profile? Type "Yes, delete" to confirm.</Text>
+        <TextInput style={styles.textInput} placeholder='Type "Yes, delete" to confirm' onChangeText={(text)=>{text=='Yes, delete' ? updateState('delete', {what: 'profile', which: state.profileComponent.currentProfile}) : null; }}/>
+        <BarButton title="Do not delete" onPress={()=>{updateState('by path and value', {path: 'render.deleteProfile', value: false})}} />
       </View>
     );
   }
@@ -170,9 +246,9 @@ const renderAllergyList = (state, updateState) => {
       {
         state.realm.objects('User').filtered(`name='${state.profileComponent.currentProfile}'`)[0].allergies.map((allergy, i)=>{
           return (
-            <View key={allergy.name + i}>
-              <Text>Allergy: {allergy.name}</Text>
-              <Text>Details: {allergy.details}</Text>
+            <View style={styles.border} key={allergy.name + i}>
+              <Text style={styles.innerText}>Allergy: {allergy.name}</Text>
+              <Text style={styles.innerText}>Details: {allergy.details}</Text>
               {renderEditAllergyDetails(state, updateState, allergy)}
             </View>
           );
@@ -186,19 +262,20 @@ const renderEditAllergyDetails = (state, updateState, allergy) => {
   if (state.render.editAllergyDetails !== allergy.name){
     return (
       <View>
-        <Button title='Edit Details' onPress={()=>{updateState('by path and value', {path: 'render.editAllergyDetails', value: allergy.name}); updateState('by path and value', {path: 'profileComponent.allergyField', value: allergy.name}); updateState('by path and value', {path: 'profileComponent.allergyDetailsField', value: allergy.details})}} />
+        <TextButton title='Edit' onPress={()=>{updateState('by path and value', {path: 'render.editAllergyDetails', value: allergy.name}); updateState('by path and value', {path: 'profileComponent.allergyField', value: allergy.name}); updateState('by path and value', {path: 'profileComponent.allergyDetailsField', value: allergy.details})}} />
       </View>
     );
   } else {
     return (
       <View>
-        <TextInput 
+        <TextInput
+          style={styles.textInput} 
           placeholder="Enter details"
           onChangeText={(text)=>{updateState('by path and value', {path: 'profileComponent.allergyDetailsField', value: text })}}
           value={state.profileComponent.allergyDetailsField} 
         />
-        <Button title='Save Details' onPress={()=>{updateState('save', {what: 'allergies', whose: state.profileComponent.currentProfile, which: allergy.name, root: 'profileComponent', keys: ['allergyDetailsField', 'allergyField']}); updateState('by path and value', {path: 'render.editAllergyDetails', value: false}); }} />
-        <Button title='Delete Allergy' onPress={()=>{updateState('delete', {what: 'allergies', whose: state.profileComponent.currentProfile, which: allergy.name})}} />
+        <TextButton title='Save' onPress={()=>{updateState('save', {what: 'allergies', whose: state.profileComponent.currentProfile, which: allergy.name, root: 'profileComponent', keys: ['allergyDetailsField', 'allergyField']}); updateState('by path and value', {path: 'render.editAllergyDetails', value: false}); }} />
+        <TextButton title='Delete' onPress={()=>{updateState('delete', {what: 'allergies', whose: state.profileComponent.currentProfile, which: allergy.name}); updateState('by path and value', {path: 'profileComponent.allergyField', value: null}); updateState('by path and value', {path: 'render.editAllergyDetails', value: false}); }} />
       </View>
     );
   }
@@ -210,9 +287,9 @@ const renderConditionList = (state, updateState) => {
       {
         state.realm.objects('User').filtered(`name='${state.profileComponent.currentProfile}'`)[0].conditions.map((condition, i)=>{
           return (
-            <View key={condition.name + i}>
-              <Text>Condition: {condition.name}</Text>
-              <Text>Details: {condition.details}</Text>
+            <View style={styles.border} key={condition.name + i}>
+              <Text style={styles.innerText}>Condition: {condition.name}</Text>
+              <Text style={styles.innerText}>Details: {condition.details}</Text>
               {renderEditConditionDetails(state, updateState, condition)}
             </View>
           );
@@ -225,20 +302,21 @@ const renderConditionList = (state, updateState) => {
 const renderEditConditionDetails = (state, updateState, condition) => {
   if (state.render.editConditionDetails !== condition.name){
     return (
-      <View>
-        <Button title='Edit Details' onPress={()=>{updateState('by path and value', {path: 'render.editConditionDetails', value: condition.name}); updateState('by path and value', {path: 'profileComponent.conditionField', value: condition.name}) ; updateState('by path and value', {path: 'profileComponent.conditionDetailsField', value: condition.details}); }} />
+      <View style={{alignItems: 'center'}}>
+        <TextButton title='Edit' onPress={()=>{updateState('by path and value', {path: 'render.editConditionDetails', value: condition.name}); updateState('by path and value', {path: 'profileComponent.conditionField', value: condition.name}) ; updateState('by path and value', {path: 'profileComponent.conditionDetailsField', value: condition.details}); }} />
       </View>
     );
   } else {
     return (
       <View>
-        <TextInput 
+        <TextInput
+          style={styles.textInput} 
           placeholder="Enter details"
           onChangeText={(text)=>{updateState('by path and value', {path: 'profileComponent.conditionDetailsField', value: text })}}
           value={state.profileComponent.conditionDetailsField} 
         />
-        <Button title='Save Details' onPress={()=>{updateState('save', {what: 'conditions', whose: state.profileComponent.currentProfile, which: condition.name, root: 'profileComponent', keys: ['conditionDetailsField', 'conditionField']}); updateState('by path and value', {path: 'render.editConditionDetails', value: false}); }} />
-        <Button title='Delete Condition' onPress={()=>{updateState('delete', {what: 'conditions', whose: state.profileComponent.currentProfile, which: condition.name})}} />
+        <TextButton title='Save' onPress={()=>{updateState('save', {what: 'conditions', whose: state.profileComponent.currentProfile, which: condition.name, root: 'profileComponent', keys: ['conditionDetailsField', 'conditionField']}); updateState('by path and value', {path: 'render.editConditionDetails', value: false}); }} />
+        <TextButton title='Delete' onPress={()=>{updateState('delete', {what: 'conditions', whose: state.profileComponent.currentProfile, which: condition.name}); updateState('by path and value', {path: 'profileComponent.conditionField', value: null}); updateState('by path and value', {path: 'render.editConditionDetails', value: false}); }} />
       </View>
     );
   }
@@ -250,23 +328,56 @@ const renderMedlist = (state, updateState) => {
   if (state.screen == 'medlist'){
     return (
       <View>
-        <Text>Medication List</Text>
+        <Text style={styles.label}>Medication List</Text>
         {
           state.realm.objects('User').filtered(`name='${state.profileComponent.currentProfile}'`)[0].medlist.map((medication, i)=>{
             return (
-              <View key={medication.tradeName + i}>
-                {toggleEditMedication(state, updateState, medication)}
+              <View style={styles.border} key={medication.tradeName + i}>
+                <Medication state={state} updateState={updateState} medication={medication} />
               </View>
             );
           })
         }
-        <TextInput 
-          placeholder='Enter another medication'
+        <Text></Text>
+        {renderAddMedication(state, updateState)}
+        <BarButton title='Back to profile' onPress={()=>{updateState('by path and value', {path: 'screen', value: 'profile'})}} />
+      </View>
+    );
+  }
+}
+
+class Medication extends Component {
+  constructor(props){
+    super(props);
+    this.toggleExpand = this.toggleExpand.bind(this);
+  }
+
+  toggleExpand() {
+    this.props.state.render[this.props.medication.tradeName] ? this.props.updateState('by path and value', {path: `render.${this.props.medication.tradeName}`, value: false}) : this.props.updateState('by path and value', {path: `render.${this.props.medication.tradeName}`, value: true});
+  }
+
+  render() {
+    return (
+      <View>
+        <BarButton title={this.props.medication.tradeName} onPress={ ()=>{ this.toggleExpand() }} />
+        { this.props.state.render[this.props.medication.tradeName] ? toggleEditMedication(this.props.state, this.props.updateState, this.props.medication) : null }
+      </View>
+    );
+  }
+}
+
+const renderAddMedication = (state, updateState) => {
+  if (!state.render.editMedication){
+    return (
+      <View>
+        <TextInput
+          style={styles.textInput} 
+          placeholder='Enter new medication'
           onChangeText={(text)=>{updateState('by path and value', {path: 'medlistComponent.tradeNameField', value: text })}}
           value={state.medlistComponent.tradeNameField} 
         />
-        <Button title='Add medication' onPress={()=>{updateState('save', {what: 'medlist', whose: state.profileComponent.currentProfile, root: 'medlistComponent', keys: ['tradeNameField']}); }} />
-        <Button title='Back to profile' onPress={()=>{updateState('by path and value', {path: 'screen', value: 'profile'})}} />
+        <TextButton title='Add+' onPress={()=>{updateState('save', {what: 'medlist', whose: state.profileComponent.currentProfile, root: 'medlistComponent', keys: ['tradeNameField']}); }} />
+        <Text></Text>
       </View>
     );
   }
@@ -274,7 +385,8 @@ const renderMedlist = (state, updateState) => {
 
 const toggleMedicationField = (state, updateState, field) => {
   return (
-    <TextInput 
+    <TextInput
+      style={styles.textInput} 
       placeholder={`Enter ${field}`}
       onChangeText={(text)=>{updateState('by path and value', {path: `medlistComponent.${field}Field`, value: text })}}
       value={state.medlistComponent[`${field}Field`]} 
@@ -286,42 +398,39 @@ const toggleEditMedication = (state, updateState, medication) => {
   if (state.render.editMedication == medication.tradeName) {
     return (
       <View>
-        <Text>Trade name:</Text>
-        <Text>{state.medlistComponent.tradeNameField}</Text>
-        <Text>Chemical name:</Text>
+        <TextInput style={styles.textInput} placeholder='Type "Delete" to delete' onChangeText={(text)=>{ text == 'Delete' ? updateState('delete', {what: 'medlist', whose: state.profileComponent.currentProfile, which: medication.tradeName}) : null; text == 'Delete' ? updateState('by path and value', {path: 'render.editMedication', value: false}) : null; text == 'Delete' ? updateState('by path and value', {path: 'medlistComponent.tradeNameField', value: null}) : null }} />
+        <Text style={styles.innerText}>Chemical name:</Text>
         {toggleMedicationField(state, updateState, 'chemicalName')}
-        <Text>Strength:</Text>
+        <Text style={styles.innerText}>Strength:</Text>
         {toggleMedicationField(state, updateState, 'strength')}
-        <Text>Unit:</Text>
+        <Text style={styles.innerText}>Unit:</Text>
         {toggleMedicationField(state, updateState, 'unit')}
-        <Text>Used for:</Text>
+        <Text style={styles.innerText}>Used for:</Text>
         {toggleMedicationField(state, updateState, 'purpose')}
-        <Text>Prescriber:</Text>
+        <Text style={styles.innerText}>Prescriber:</Text>
         {toggleMedicationField(state, updateState, 'prescriber')}
-        <Text>Directions:</Text>
+        <Text style={styles.innerText}>Directions:</Text>
         {toggleMedicationField(state, updateState, 'directions')}
-        <Text>Notes:</Text>
+        <Text style={styles.innerText}>Notes:</Text>
         {toggleMedicationField(state, updateState, 'notes')}
-        <Text>Image:</Text>
+        <Text style={styles.innerText}>Image:</Text>
         <Image style={styles.image} source={{uri: state.medlistComponent.imageLocationField}} />
-        <Button title='Take Picture' onPress={()=>{updateState('by path and value', {path: 'screen', value: 'takePicture'})}} />
-        <Button title='Save' onPress={()=>{updateState('save', {what: 'medlist', whose: state.profileComponent.currentProfile, which: medication.tradeName, root: 'medlistComponent', keys: Object.keys(state.medlistComponent)}); }} />
-        <Button title='Delete Medication' onPress={()=>{updateState('delete', {what: 'medlist', whose: state.profileComponent.currentProfile, which: medication.tradeName})}} />
+        <TextButton title='Take Picture' onPress={()=>{updateState('by path and value', {path: 'screen', value: 'takePicture'})}} />
+        <TextButton title='Save' onPress={()=>{updateState('save', {what: 'medlist', whose: state.profileComponent.currentProfile, which: medication.tradeName, root: 'medlistComponent', keys: Object.keys(state.medlistComponent)}); }} />
       </View>
     );
   } else {
     return (
       <View>
-        <Text>Trade name: {medication.tradeName}</Text>
-        <Text>Chemical name: {medication.chemicalName}</Text>
-        <Text>Strength: {medication.strength+medication.unit}</Text>
-        <Text>Used for: {medication.purpose}</Text>
-        <Text>Prescriber: {medication.prescriber}</Text>
-        <Text>Directions: {medication.directions}</Text>
-        <Text>Notes: {medication.notes}</Text>
-        <Text>Image:</Text>
+        <Text style={styles.innerText}>Chemical name: {medication.chemicalName}</Text>
+        <Text style={styles.innerText}>Strength: {medication.strength+medication.unit}</Text>
+        <Text style={styles.innerText}>Used for: {medication.purpose}</Text>
+        <Text style={styles.innerText}>Prescriber: {medication.prescriber}</Text>
+        <Text style={styles.innerText}>Directions: {medication.directions}</Text>
+        <Text style={styles.innerText}>Notes: {medication.notes}</Text>
+        <Text style={styles.innerText}>Image:</Text>
         <Image style={styles.image} source={{uri: medication.imageLocation}} />
-        <Button title='Edit' onPress={()=>{updateState('by path and value', {path: 'render.editMedication', value: medication.tradeName}); updateState('load medication fields', medication); deletePreviousImage(state.medlistComponent.imageLocationField);}} />
+        <TextButton title='Edit' onPress={()=>{updateState('by path and value', {path: 'render.editMedication', value: medication.tradeName}); updateState('load medication fields', medication); deletePreviousImage(state.medlistComponent.imageLocationField);}} />
       </View>
     );     
   }
@@ -332,7 +441,7 @@ const toggleEditMedication = (state, updateState, medication) => {
 const renderTakePicture = (state, updateState) =>{
   if (state.screen == 'takePicture'){
     return (
-      <View>
+      <View style={styles.cameraContainer}>
         <RNCamera
           style={styles.preview}
           type={RNCamera.Constants.Type.back}
@@ -344,7 +453,6 @@ const renderTakePicture = (state, updateState) =>{
             buttonNegative: 'Cancel',
           }}
           captureAudio={false}
-          ratio="1:1" //Not all aspect ratios are supported. There's a function that returns list of supported ratios.
         >
           {({ camera, status }) => {
             if (status !== 'READY') return <PendingView />;
@@ -357,7 +465,7 @@ const renderTakePicture = (state, updateState) =>{
             );
           }}
         </RNCamera>
-        <Button title='Back to medlist' onPress={()=>{updateState('by path and value', {path: 'screen', value: 'medlist'})}} />
+        <BarButton title='Back to medlist' onPress={()=>{updateState('by path and value', {path: 'screen', value: 'medlist'})}} />
       </View>
     );
   }
@@ -475,12 +583,16 @@ const checkInputCorrect = (state, data) => {
   return errorMessage;
 }
 
-const clearInputFields = (updateState, root, keys) => { keys.forEach((key)=>{ updateState('by path and value', {path: root+"."+key, value: null}); }); }
+const clearInputFields = (state, updateState, root, keys) => { 
+  let stateProp = JSON.parse(JSON.stringify(state[root]));
+  keys.forEach((key)=>{ stateProp[key] = null }); 
+  updateState('by path and value', {path: root, value: stateProp});
+}
 
 const saveToRealm = async (state, updateState, updateRealm, data) => {
   let error = checkInputCorrect(state, data);
   if (error){ updateState('by path and value', {path: 'message', value: error}); }
-  else { await updateRealm('save', data); clearInputFields(updateState, data.root, data.keys); updateState('by path and value', {path: 'render.editMedication', value: false}); }
+  else { await updateRealm('save', data); clearInputFields(state, updateState, data.root, data.keys); updateState('by path and value', {path: 'render.editMedication', value: false}); }
 }
 //End of miscellaneous functions
 
@@ -535,7 +647,7 @@ class App extends Component {
       case 'load medication fields':
         let keys = Object.keys(data);
         keys.forEach((field)=>{
-          this.updateState('by path and value', {path: `medlistComponent.${field}Field`, value: data[field]});
+          this.updateState('by path and value', {path: `medlistComponent.${field}Field`, value: (field == 'strength' && typeof data[field] == 'number') ? data[field].toString() : data[field] });
         });
         break;
       case 'delete':
@@ -612,51 +724,111 @@ class App extends Component {
 
   render() {
     return (
-      <ScrollView style={styles.appContainer}>
+      <View style={styles.scrollContainer}>
+      <ScrollView style={styles.appContainer} contentContainerStyle={{flexGrow: 1}}>
+        {renderMessage(this.state, this.updateState)}
         {renderHome(this.state, this.updateState)}
         {createProfile(this.state, this.updateState, this.updateRealm)}
         {renderProfile(this.state, this.updateState)}
         {renderMedlist(this.state, this.updateState)}
         {renderTakePicture(this.state, this.updateState)}
-        <Button title="Home" onPress={()=>{this.updateState('by path and value', {path: 'screen', value: 'home'})}} />
-        <Button title='Purge images' onPress={()=>{purgeUnsavedImages();}} />
-        <Text>{this.state.message}</Text>
+        {this.state.screen !== 'home' ? <BarButton color='rgba(0, 155, 95, 1)' title="Home" onPress={()=>{this.updateState('by path and value', {path: 'screen', value: 'home'})}} /> : null } 
+        {/*<Button title='Purge images' onPress={()=>{purgeUnsavedImages();}} />*/}
       </ScrollView>
+      </View>
     );
   }
 }
 
+const darkMedicalGreen = 'rgba(0, 155, 110, 1)';
+const lightMedicalGreen = 'rgba(235, 255, 235, 1)';
+
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flex: 1,
+    padding: 15,
+    backgroundColor: lightMedicalGreen,
+  },
   appContainer: {
-    flex: 1
+    flex: 1,
+    backgroundColor: lightMedicalGreen,
   },
   home: {
     flex: 1, 
     justifyContent: 'center', 
-    alignItems: 'center'
+    alignItems: 'center',
+    paddingTop: 50,
   },
-  camera: {
-    height: 500,
-    justifyContent: "center"
+  createProfile: {
+    flex: 1,
+    justifyContent: 'center'
+  },
+  name: {
+    fontSize: 40, 
+    color: darkMedicalGreen, 
+    fontWeight: 'bold', 
+    textAlign: 'center'
+  },
+  cameraContainer: {
+    flex: 1,
+    flexDirection: 'column',
   },
   preview: {
-    width: 200, //Can only adjust width size, and height will be determined by aspect ratio
+    flex: 1,
     justifyContent: 'flex-end',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   capture: {
-    backgroundColor: '#fff',
+    flex: 0,
+    backgroundColor: lightMedicalGreen,
     borderRadius: 5,
     padding: 15,
     paddingHorizontal: 20,
     alignSelf: 'center',
-    margin: 20
+    margin: 20,
   },
   image: {
     flex: 1,
     height: 200,
     width: 200,
-    backgroundColor: 'red'
+    backgroundColor: 'red',
+    marginLeft: 5
+  },
+  messageContainer: {
+    borderRadius: 10,
+    borderWidth: 3,
+    borderColor: 'red'
+  },
+  messageText: {
+    color: 'red',
+    fontSize: 18,
+    paddingHorizontal: 20,
+    textAlign: 'center'
+  },
+  label: {
+    fontSize: 20,
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    backgroundColor: darkMedicalGreen,
+    padding: 6,
+    marginBottom: 5
+  },
+  innerText: {
+    paddingHorizontal: 5,
+  },
+  textInput: {
+    width: '100%',
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: darkMedicalGreen,
+    backgroundColor: 'white'
+  },
+  border: {
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: darkMedicalGreen,
+    marginBottom: 5
   }
 });
 
