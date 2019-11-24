@@ -490,6 +490,7 @@ const renderTakePicture = (state, updateState) =>{
 const takePicture = async function(state, updateState, camera) {
   const options = { quality: 0.5, base64: true };
   const data = await camera.takePictureAsync(options);
+  if (state.medlistComponent.imageLocationField !== state.realm.objects('User').filtered(`name='${state.profileComponent.currentProfile}'`)[0].medlist.filtered(`tradeName='${state.render.editMedication}'`)[0].imageLocation){ deletePreviousImage(state.medlistComponent.imageLocationField); } //Don't delete YET what's on medicationLocationField if it's the one saved in realm because user could navigate away before saving the new image, leading to dead reference pointing to deleted image 
   updateState('by path and value', {path: 'medlistComponent.imageLocationField', value: data.uri});
   updateState('by path and value', {path: 'screen', value: 'medlist'});
 }
@@ -662,6 +663,20 @@ const composeEmail = (state) => {
 }
 // End of email functions 
 
+//HTTP functions
+const updateCompendium = () => {
+  fetch('https://emma-server.glitch.me')
+    .then((response) => response.json())
+    .then((responseJson) => {
+      console.log(responseJson);
+      return responseJson;
+    })
+    .catch((error) => {
+      console.error(error);
+    });
+}
+//End of HTTP-functions
+
 class App extends Component {
   constructor(props) {
     super(props);
@@ -799,6 +814,7 @@ class App extends Component {
         {renderMedlist(this.state, this.updateState)}
         {renderTakePicture(this.state, this.updateState)}
         {this.state.screen !== 'home' ? <BarButton color='rgba(0, 155, 95, 1)' title="Home" onPress={()=>{this.updateState('by path and value', {path: 'screen', value: 'home'})}} /> : null } 
+        <BarButton title='Update' onPress={()=>{ updateCompendium(); }} />
         {/*<Button title='Purge images' onPress={()=>{purgeUnsavedImages();}} />*/}
       </ScrollView>
       </View>
@@ -843,7 +859,6 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'flex-end',
     alignItems: 'center',
-    opacity: 0.5
   },
   capture: {
     flex: 0,
@@ -853,12 +868,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     alignSelf: 'center',
     margin: 20,
+    opacity: 0.5
   },
   image: {
     flex: 1,
     height: 150,
     width: 150,
-    backgroundColor: 'red',
     marginTop: 5
   },
   messageContainer: {
