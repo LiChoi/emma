@@ -6,7 +6,8 @@ import Mailer from 'react-native-mail';
 const RNFS = require('react-native-fs');
 
 import {renderMessage, BarButton, TextButton} from './Common';
-import {darkMedicalGreen, lightMedicalGreen, styles} from './Styles';
+import {styles} from './Styles';
+import {renderHome} from './Home.js';
 
 
 //Beginning of realm constants
@@ -127,7 +128,7 @@ class TextButton extends Component {
   }
 }
 //End of common components*/
-
+/*
 //Beginning of renderHome component and its subcomponents
 const renderHome = (state, updateState) => {
   if (state.screen == 'home'){
@@ -163,7 +164,7 @@ const loadProfiles = (state, updateState) => {
     );
   }
 }
-//End of renderHome et al
+//End of renderHome et al */
 
 //Beginning of createProfileComponent and all its subcomponenets 
 const createProfile = (state, updateState) => {

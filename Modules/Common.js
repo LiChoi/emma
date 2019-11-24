@@ -5,14 +5,14 @@ import {fadedDarkMedicalGreen, styles} from './Styles';
 //Beginning of minor common components
 export const renderMessage = (state, updateState) => {
     if (state.message){
-      return (
-        <View style={styles.messageContainer}>
-          <Text style={styles.messageText}>{state.message}</Text>
-          <BarButton title="Close" onPress={()=>{updateState('by path and value', {path: 'message', value: null})}} />
-        </View>
-      );
+        return (
+            <View style={styles.messageContainer}>
+            <Text style={styles.messageText}>{state.message}</Text>
+            <BarButton title="Close" onPress={()=>{updateState('by path and value', {path: 'message', value: null})}} />
+            </View>
+        );
     }
-  }
+}
   
 export class BarButton extends Component {
     render () {
@@ -24,9 +24,9 @@ export class BarButton extends Component {
   
 export class TextButton extends Component {
     render () {
-      return (
-        <TouchableHighlight underlayColor={fadedDarkMedicalGreen} style={styles.textButtonStyle} onPress={this.props.onPress} ><Text style={styles.textButtonTextStyle}>{this.props.title.toUpperCase()}</Text></TouchableHighlight>
-      );
+        return (
+            <TouchableHighlight underlayColor={fadedDarkMedicalGreen} style={styles.textButtonStyle} onPress={this.props.onPress} ><Text style={styles.textButtonTextStyle}>{this.props.title.toUpperCase()}</Text></TouchableHighlight>
+        );
     }
-  }
+}
   //End of common components
