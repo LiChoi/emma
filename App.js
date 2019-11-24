@@ -50,7 +50,22 @@ const medicationSchema = {
   }
 };
 
-const schemas = [userSchema, conditionSchema, allergySchema, medicationSchema];
+const compendiumSchema = {
+  name: 'Compendium',
+  primaryKey: 'chemicalName',
+  properties: {
+    chemicalName: 'string',
+    tradeNames: 'string[]',
+    class: 'string',
+    indications: 'string[]',
+    interactionTags: 'string[]',
+    crossAllergies: 'string[]',
+    contraindications: 'string[]',
+    doseRange: 'string'
+  }
+}
+
+const schemas = [userSchema, conditionSchema, allergySchema, medicationSchema, compendiumSchema];
 //End of realm constants
 
 //Beginning of minor common components
@@ -664,11 +679,15 @@ const composeEmail = (state) => {
 // End of email functions 
 
 //HTTP functions
-const updateCompendium = () => {
+const updateCompendium = (data) => {
   fetch('https://emma-server.glitch.me')
     .then((response) => response.json())
     .then((responseJson) => {
       console.log(responseJson);
+      data.updateRealm()
+      Object.getOwnPropertyNames(responseJson).forEach(key=>{
+        data.updateRealm('direct save', {schema: 'Compendium', instance: responseJson[key], rewrite: data.state.realm.objects('Compendium').filtered(`chemicalName='${key}'`).length > 0 ? true : false });
+      })
       return responseJson;
     })
     .catch((error) => {
@@ -797,6 +816,9 @@ class App extends Component {
               realm.create('User', {name: data.whose, [data.what]: list}, true);
             }
             break;
+          case 'direct save':
+            realm.create(data.schema, data.instance, data.rewrite);
+            break;
         }
       });
       this.setState({ realm });
@@ -814,7 +836,8 @@ class App extends Component {
         {renderMedlist(this.state, this.updateState)}
         {renderTakePicture(this.state, this.updateState)}
         {this.state.screen !== 'home' ? <BarButton color='rgba(0, 155, 95, 1)' title="Home" onPress={()=>{this.updateState('by path and value', {path: 'screen', value: 'home'})}} /> : null } 
-        <BarButton title='Update' onPress={()=>{ updateCompendium(); }} />
+        <BarButton title='Update' onPress={()=>{ updateCompendium({updateRealm: this.updateRealm, state: this.state}); }} />
+        <Button title='Console.log Compendium' onPress={()=>{console.log(this.state.realm.objects('Compendium'))}} />
         {/*<Button title='Purge images' onPress={()=>{purgeUnsavedImages();}} />*/}
       </ScrollView>
       </View>
