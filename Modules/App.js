@@ -1,13 +1,15 @@
 import React, { Component } from 'react';
 import { Platform, StyleSheet, Text, View, TouchableOpacity, TouchableHighlight, Image, ScrollView, TextInput, Button } from 'react-native';
 import { RNCamera } from 'react-native-camera';
-import Mailer from 'react-native-mail';
+//import Mailer from 'react-native-mail';
 
 const RNFS = require('react-native-fs');
 
 import {renderMessage, BarButton, TextButton} from './Common';
 import {styles} from './Styles';
 import {renderHome} from './Home.js';
+import {createProfile} from './CreateProfile.js';
+import {renderProfile} from './Profile';
 
 
 //Beginning of realm constants
@@ -167,7 +169,7 @@ const loadProfiles = (state, updateState) => {
 //End of renderHome et al */
 
 //Beginning of createProfileComponent and all its subcomponenets 
-const createProfile = (state, updateState) => {
+/*const createProfile = (state, updateState) => {
   if (state.screen == 'createProfile'){
     return (
       <View style={styles.createProfile}>
@@ -188,11 +190,11 @@ const createProfile = (state, updateState) => {
       </View>
     );
   }
-}
+}*/
 //End of createProfileComponent
 
 //Beginning of profile componenent and its subcomponenets
-const renderProfile = (state, updateState) => {
+/*const renderProfile = (state, updateState) => {
   if (state.screen == 'profile'){
     return (
       <View>
@@ -357,7 +359,7 @@ const renderEditConditionDetails = (state, updateState, condition) => {
       </View>
     );
   }
-}
+}*/
 //End of profile component and its subcomponenets
 
 //Beginning of medlist component and its subcomponents
@@ -633,7 +635,7 @@ const saveToRealm = async (state, updateState, updateRealm, data) => {
 //End of updateState and updateRealm functions
 
 //Email functions
-const handleEmail = (data) => {
+/*const handleEmail = (data) => {
   Mailer.mail({
     subject: data.subject, //String
     recipients: data.recipients, //array of strings
@@ -681,7 +683,7 @@ const composeEmail = (state) => {
     }
   });
   return body;
-}
+}*/
 // End of email functions 
 
 //HTTP functions
