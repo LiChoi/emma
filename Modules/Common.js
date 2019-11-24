@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import { Text, View, TouchableHighlight } from 'react-native';
 import {fadedDarkMedicalGreen, styles} from './Styles';
 
-//Beginning of minor common components
 export const renderMessage = (state, updateState) => {
     if (state.message){
         return (
@@ -29,4 +28,3 @@ export class TextButton extends Component {
         );
     }
 }
-  //End of common components
