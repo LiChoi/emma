@@ -2,7 +2,12 @@ import React, { Component } from 'react';
 import { Platform, StyleSheet, Text, View, TouchableOpacity, TouchableHighlight, Image, ScrollView, TextInput, Button } from 'react-native';
 import { RNCamera } from 'react-native-camera';
 import Mailer from 'react-native-mail';
+
 const RNFS = require('react-native-fs');
+
+import {renderMessage, BarButton, TextButton} from './Common';
+import {darkMedicalGreen, lightMedicalGreen, styles} from './Styles';
+
 
 //Beginning of realm constants
 const Realm = require('realm');
@@ -68,7 +73,7 @@ const compendiumSchema = {
 const schemas = [userSchema, conditionSchema, allergySchema, medicationSchema, compendiumSchema];
 //End of realm constants
 
-//Beginning of minor common components
+/*/Beginning of minor common components
 const renderMessage = (state, updateState) => {
   if (state.message){
     return (
@@ -121,7 +126,7 @@ class TextButton extends Component {
     );
   }
 }
-//End of common components
+//End of common components*/
 
 //Beginning of renderHome component and its subcomponents
 const renderHome = (state, updateState) => {
@@ -836,15 +841,15 @@ class App extends Component {
         {renderMedlist(this.state, this.updateState)}
         {renderTakePicture(this.state, this.updateState)}
         {this.state.screen !== 'home' ? <BarButton color='rgba(0, 155, 95, 1)' title="Home" onPress={()=>{this.updateState('by path and value', {path: 'screen', value: 'home'})}} /> : null } 
-        <BarButton title='Update' onPress={()=>{ updateCompendium({updateRealm: this.updateRealm, state: this.state}); }} />
-        <Button title='Console.log Compendium' onPress={()=>{console.log(this.state.realm.objects('Compendium'))}} />
+        {this.state.screen == 'home' ? <BarButton title='Update' onPress={()=>{ updateCompendium({updateRealm: this.updateRealm, state: this.state}); }} /> : null}
+        {/*<Button title='Console.log Compendium' onPress={()=>{console.log(this.state.realm.objects('Compendium'))}} />*/}
         {/*<Button title='Purge images' onPress={()=>{purgeUnsavedImages();}} />*/}
       </ScrollView>
       </View>
     );
   }
 }
-
+/*
 const darkMedicalGreen = 'rgba(0, 155, 110, 1)';
 const lightMedicalGreen = 'rgba(235, 255, 235, 1)';
 
@@ -936,5 +941,5 @@ const styles = StyleSheet.create({
     marginBottom: 5
   }
 });
-
+*/
 export default App;
