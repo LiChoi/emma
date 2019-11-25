@@ -243,8 +243,8 @@ class App extends Component {
         let root = path.shift();
         let value = (path[0] == 'strengthField' && data.value) ? data.value.toString() : data.value; 
         this.setState(prevState => {
-          let rootProp = JSON.parse(JSON.stringify(prevState[root]));
-          return { [root]: changeObjectByPath(rootProp, path, value) };                                
+          let rootProp = prevState[root] ? JSON.parse(JSON.stringify(prevState[root])) : null;
+          return { [root]: rootProp ? changeObjectByPath(rootProp, path, value) : value };                                
         });
         break;
     }
