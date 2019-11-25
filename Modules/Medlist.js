@@ -109,7 +109,7 @@ const toggleEditMedication = (state, updateState, medication) => {
         return (
             <View>
                 <Text style={styles.innerText}>Chemical name: {medication.chemicalName}</Text>
-                <Text style={styles.innerText}>Strength: {medication.strength+medication.unit}</Text>
+                <Text style={styles.innerText}>Strength: {Math.round(medication.strength*1000)/1000+medication.unit}</Text>
                 <Text style={styles.innerText}>Used for: {medication.purpose}</Text>
                 <Text style={styles.innerText}>Prescriber: {medication.prescriber}</Text>
                 <Text style={styles.innerText}>Directions: {medication.directions}</Text>

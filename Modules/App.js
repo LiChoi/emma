@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, ScrollView } from 'react-native';
+import { View, ScrollView, Button } from 'react-native';
 
 import {renderMessage, BarButton} from './Common';
 import {styles} from './Styles';
@@ -45,7 +45,7 @@ const medicationSchema = {
   properties: {
     tradeName: 'string',
     chemicalName: 'string?',
-    strength: 'int?',
+    strength: 'float?',
     unit: 'string?',
     directions: 'string?',
     purpose: 'string?',
@@ -61,16 +61,27 @@ const compendiumSchema = {
   properties: {
     chemicalName: 'string',
     tradeNames: 'string[]',
+    strengths: 'float[]',
+    unit: 'string',
     class: 'string',
     indications: 'string[]',
-    interactionTags: 'string[]',
+    interactionTags: 'Interaction[]',
     crossAllergies: 'string[]',
     contraindications: 'string[]',
     doseRange: 'string'
   }
-}
+};
 
-const schemas = [userSchema, conditionSchema, allergySchema, medicationSchema, compendiumSchema];
+const interactionTagSchema = {
+  name: 'Interaction',
+  properties: {
+    tag: 'string',
+    effect: 'string?',
+    severity: 'string?'
+  }
+};
+
+const schemas = [userSchema, conditionSchema, allergySchema, medicationSchema, compendiumSchema, interactionTagSchema];
 //End of realm constants
 
 //Functions and constants used in updateState and updateRealm
@@ -133,7 +144,7 @@ const checkInputCorrect = (state, data) => {
         errorMessage = item[stateToRealm[key]] == state[data.root][key] ? errorMessage.concat(`${state[data.root][key]} already exists. `) : errorMessage;
       });
     } else if ( mustBeNumber.indexOf(key) > -1 ){
-      errorMessage = ( state[data.root][key] && /[^0-9]/.test(state[data.root][key]) ) ? errorMessage.concat('Must be a number. ') : errorMessage;
+      errorMessage = ( state[data.root][key] && ( /[^0-9\.]/.test(state[data.root][key]) || (!parseFloat(state[data.root][key]) && parseFloat(state[data.root][key]) !== 0) || (state[data.root][key].match(/\./g) || []).length > 1 ) ) ? errorMessage.concat('Must be a number. ') : errorMessage;
     } 
   });
   return errorMessage;
@@ -157,7 +168,7 @@ const updateCompendium = (data) => {
   fetch('https://emma-server.glitch.me').then((response) => response.json()).then((responseJson) => {
       console.log(responseJson);
       Object.getOwnPropertyNames(responseJson).forEach(key=>{
-        data.updateRealm('direct save', {schema: 'Compendium', instance: responseJson[key], rewrite: data.state.realm.objects('Compendium').filtered(`chemicalName='${key}'`).length > 0 ? true : false });
+        data.updateRealm('direct save', {schema: 'Compendium', instance: responseJson[key], rewrite: data.state.realm.objects('Compendium').filtered(`chemicalName='${responseJson[key].chemicalName}'`).length > 0 ? true : false });
       })
       return responseJson;
   }).catch((error) => {
@@ -217,7 +228,7 @@ class App extends Component {
       case 'load medication fields':
         let keys = Object.keys(data);
         keys.forEach((field)=>{
-          this.updateState('by path and value', {path: `medlistComponent.${field}Field`, value: (field == 'strength' && typeof data[field] == 'number') ? data[field].toString() : data[field] });
+          this.updateState('by path and value', {path: `medlistComponent.${field}Field`, value: (field == 'strength' && typeof data[field] == 'number') ? (Math.round(data[field]*1000)/1000).toString() : data[field] });
         });
         break;
       case 'delete':
@@ -258,7 +269,7 @@ class App extends Component {
               listToUpdate = listToUpdate.map((item)=>{
                 if (item[stateToRealm[primaryStateKey]] == data.which) {
                   data.keys.forEach((key)=>{
-                    if (key == 'strengthField'){ item[stateToRealm[key]] = this.state[data.root][key] ? parseInt(this.state[data.root][key], 10) : 0;}
+                    if (key == 'strengthField'){ item[stateToRealm[key]] = this.state[data.root][key] ? parseFloat(this.state[data.root][key]) : 0;}
                     else {item[stateToRealm[key]] = this.state[data.root][key];}
                   });
                   didUpdateList = true;
@@ -307,7 +318,7 @@ class App extends Component {
         {renderTakePicture(this.state, this.updateState)}
         {this.state.screen !== 'home' ? <BarButton color='rgba(0, 155, 95, 1)' title="Home" onPress={()=>{this.updateState('by path and value', {path: 'screen', value: 'home'})}} /> : null } 
         {this.state.screen == 'home' ? <BarButton title='Update' onPress={()=>{ updateCompendium({updateRealm: this.updateRealm, state: this.state}); }} /> : null}
-        {/*<Button title='Console.log Compendium' onPress={()=>{console.log(this.state.realm.objects('Compendium'))}} />*/}
+        {<Button title='Console.log Compendium' onPress={()=>{console.log(this.state.realm.objects('Compendium'))}} />}
         {/*<Button title='Purge images' onPress={()=>{purgeAllImages();}} />*/}
       </ScrollView>
       </View>
