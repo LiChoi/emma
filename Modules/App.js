@@ -206,7 +206,8 @@ class App extends Component {
         prescriberField: null,
         notesField: null,
         imageLocationField: null
-      }
+      },
+      tradeNameList: []
     };
     this.updateState = this.updateState.bind(this);
     this.updateRealm = this.updateRealm.bind(this);
@@ -318,7 +319,7 @@ class App extends Component {
         {renderTakePicture(this.state, this.updateState)}
         {this.state.screen !== 'home' ? <BarButton color='rgba(0, 155, 95, 1)' title="Home" onPress={()=>{this.updateState('by path and value', {path: 'screen', value: 'home'})}} /> : null } 
         {this.state.screen == 'home' ? <BarButton title='Update' onPress={()=>{ updateCompendium({updateRealm: this.updateRealm, state: this.state}); }} /> : null}
-        {<Button title='Console.log Compendium' onPress={()=>{console.log(this.state.realm.objects('Compendium'))}} />}
+        {/*<Button title='Console.log Compendium' onPress={()=>{console.log(this.state.realm.objects('Compendium'))}} />*/}
         {/*<Button title='Purge images' onPress={()=>{purgeAllImages();}} />*/}
       </ScrollView>
       </View>
