@@ -20,15 +20,15 @@ export const loadProfiles = (state, updateState) => {
         let users = state.realm.objects('User');
         if (users.length > 0){
             return (
-            <View style={{width: '100%'}}>
-                {
-                    users.map((user, i)=>{
-                        return(
-                            <BarButton key={"username "+i} title={user.name} onPress={()=>{updateState('by path and value', {path: 'screen', value: 'profile'}); updateState('by path and value', {path: 'profileComponent.currentProfile', value: user.name})}} />
-                        );
-                    })
-                }
-            </View>
+                <View style={{width: '100%'}}>
+                    {
+                        users.map((user, i)=>{
+                            return(
+                                <BarButton key={"username "+i} title={user.name} onPress={()=>{updateState('by path and value', {path: 'screen', value: 'profile'}); updateState('by path and value', {path: 'profileComponent.currentProfile', value: user.name})}} />
+                            );
+                        })
+                    }
+                </View>
             );
         } 
     } else {
