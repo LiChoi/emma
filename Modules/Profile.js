@@ -21,6 +21,7 @@ export const renderProfile = (state, updateState) => {
                 {renderAddCondition(state, updateState)}
                 <Text>{'\n'}</Text>
                 <BarButton title="View med list" onPress={()=>{updateState('by path and value', {path: 'screen', value: 'medlist'})}}/>
+                <BarButton title="Emma Asks" onPress={()=>{ updateState('by path and value', {path: 'screen', value: 'emmaAsks'}) }} />
                 <BarButton title="Email Profile" onPress={()=>{handleEmail(
                     {
                         subject: "Profile", //String
