@@ -29,7 +29,7 @@ const conditionSchema = {
   name: 'Condition',
   properties: {
     name: 'string',
-    details: {type: 'string?', default: 'Enter details'}
+    details: {type: 'string?', default: ''}
   }
 };
 
@@ -37,7 +37,7 @@ const allergySchema = {
   name: 'Allergy',
   properties: {
     name: 'string',
-    details: {type: 'string?', default: 'Enter details'}
+    details: {type: 'string?', default: ''}
   }
 };
 

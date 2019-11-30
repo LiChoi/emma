@@ -24,7 +24,7 @@ export const renderProfile = (state, updateState) => {
                 <Text>{'\n'}</Text>
                 <BarButton title="View med list" onPress={()=>{updateState('by path and value', {path: 'screen', value: 'medlist'})}}/>
                 <BarButton title="Emma Asks" onPress={()=>{ 
-                  updateState('by path and value', {path: 'emmaAsksComponent', value: PrepareReport(state.realm.objects('User').filtered(`name='${state.profileComponent.currentProfile}'`)[0], state.realm.objects('Compendium')) }); 
+                  updateState('by path and value', {path: 'emmaAsksComponent', value: PrepareReport( state.realm.objects('User').filtered(`name='${state.profileComponent.currentProfile}'`)[0], state.realm.objects('Compendium'), state.realm.objects('Medical Terms') ) }); 
                   updateState('by path and value', {path: 'screen', value: 'emmaAsks'}); 
                 }} />
                 <BarButton title="Email Profile" onPress={()=>{handleEmail(
