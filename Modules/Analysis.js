@@ -7,7 +7,6 @@ export const PrepareReport = (medlist, compendium) => {
 }
 
 const CheckForDTPs = (medlist, compendium) => {
-    // Function requires data.medlist, data.compendium  
     //For each drug in medlist, get its corresponding Compendium entry, put into array
     let drugs = [];
     medlist.forEach((drug)=>{
