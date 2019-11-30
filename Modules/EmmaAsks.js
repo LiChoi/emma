@@ -9,7 +9,7 @@ export const renderEmmaAsks = (state, updateState) => {
             <View>
                 <Text style={styles.label}>Emma thinks you should ask about...</Text>
                 <Text></Text><Text></Text>
-                {state.emmaAsksComponent.map((message, i)=>{
+                {state.emmaAsksComponent.length > 0 ? state.emmaAsksComponent.map((message, i)=>{
                     return (
                         <View key={i}>
                             <View style={styles.messageContainer} >
@@ -18,7 +18,7 @@ export const renderEmmaAsks = (state, updateState) => {
                             <Text></Text>
                         </View>
                     );
-                })}
+                }) : <View style={styles.messageContainer} ><Text style={styles.messageText} >Emma can't think of any questions.</Text></View>}
                 <Text></Text>
                 <BarButton title='Back to profile' onPress={()=>{updateState('by path and value', {path: 'screen', value: 'profile'})}} />
             </View>
