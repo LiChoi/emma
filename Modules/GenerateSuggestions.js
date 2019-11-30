@@ -27,15 +27,6 @@ export const getList = (data) => {
     return list;
 } 
 
-//Use to find a match before generating suggestions
-export const findMatch = (data) => {
-    let matches = false; 
-    for(let i = 0; i < data.list.length; i++){
-        if (data.item == data.list[i]) { matches = true; i = data.list.length; }
-    }
-    return matches;
-}
-
 //If no match found, use this to generate suggestions
 export const generateSuggestedList = (data) => {
   //Requres data.input (what the input is), data.list (the list from which to pull suggestions)

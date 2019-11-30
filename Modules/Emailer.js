@@ -33,7 +33,7 @@ export const composeEmail = (state) => {
     let profileKeys = Object.keys(profile);
     profileKeys.forEach((key)=>{
         if (profile[key] instanceof Date && profile.hasOwnProperty(key)){
-            body = body + `${key.toUpperCase()}: ${profile[key].toDateString().slice(4)} \n`;
+            body = body + `${key.toUpperCase()}: ${profile[key].toDateString().slice(4)} \n\n`;
         } else if (profile[key] instanceof Object && profile.hasOwnProperty(key)){
             body = body + `${key.toUpperCase()}: \n`;
             profile[key].forEach((item)=>{
