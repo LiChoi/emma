@@ -3,6 +3,7 @@ import { Text, TextInput, View } from 'react-native';
 import {BarButton, TextButton} from './Common';
 import {styles} from './Styles';
 import {handleEmail, composeEmail} from './Emailer';
+import {PrepareReport} from './Analysis';
 
 export const renderProfile = (state, updateState) => {
     if (state.screen == 'profile'){
@@ -21,18 +22,22 @@ export const renderProfile = (state, updateState) => {
                 {renderAddCondition(state, updateState)}
                 <Text>{'\n'}</Text>
                 <BarButton title="View med list" onPress={()=>{updateState('by path and value', {path: 'screen', value: 'medlist'})}}/>
+                <BarButton title="Emma Asks" onPress={()=>{ 
+                  updateState('by path and value', {path: 'emmaAsksComponent', value: PrepareReport(state.realm.objects('User').filtered(`name='${state.profileComponent.currentProfile}'`)[0].medlist, state.realm.objects('Compendium')) }); 
+                  updateState('by path and value', {path: 'screen', value: 'emmaAsks'}); 
+                }} />
                 <BarButton title="Email Profile" onPress={()=>{handleEmail(
                     {
-                        subject: "Profile", //String
+                        subject: "Medical Profile", //String
                         recipients: [], //array of strings
                         ccRecipients: [], //array of strings
                         bccRecipients: [], //array of strings
                         body: composeEmail(state), //string
                         isHTML: false, //boolean
                         attachment: {
-                            path: "",  // The absolute path of the file from which to read data.
-                            type: "",   // Mime Type: jpg, png, doc, ppt, html, pdf, csv
-                            name: "",   // Optional: Custom filename for attachment
+                            //path: "",  // The absolute path of the file from which to read data.
+                            //type: "",   // Mime Type: jpg, png, doc, ppt, html, pdf, csv
+                            //name: "",   // Optional: Custom filename for attachment
                         }
                     }
                 )}} />

@@ -49,3 +49,18 @@ export const composeEmail = (state) => {
     });
     return body;
 }
+
+export const composeInteractionEmail = (state) => {
+    let body = "My Electronic Medical Mobile Assistant (Emma) has a few questions about my drug therapy.\n\nMy current medications are:\n\n";
+    let patient = state.profileComponent.currentProfile;
+    let medlist = state.realm.objects('User').filtered(`name='${patient}'`)[0].medlist;
+    let emmaAsks = state.emmaAsksComponent;
+    medlist.forEach((drug, i)=>{
+        body = i !== medlist.length - 1 ? body.concat(`${drug.tradeName}, `) : body.concat(`and ${drug.tradeName}.\n\nEmma is wondering if I should be...\n\n`);
+    });
+    emmaAsks.forEach((question, i)=>{
+        body = body.concat(`${question}\n\n`);
+    });
+    body = body.concat(`Thank you so much for taking the time to answer my question.\n\nRegards,\n\n ${patient}`);
+    return body;
+}

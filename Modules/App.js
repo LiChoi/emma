@@ -8,6 +8,7 @@ import {createProfile} from './CreateProfile.js';
 import {renderProfile} from './Profile';
 import {renderMedlist} from './Medlist';
 import { renderTakePicture, deletePreviousImage, purgeAllImages} from './Camera';
+import {renderEmmaAsks} from './EmmaAsks';
 
 //Beginning of realm constants
 const Realm = require('realm');
@@ -68,7 +69,7 @@ const compendiumSchema = {
     interactionTags: 'Interaction[]',
     crossAllergies: 'string[]',
     contraindications: 'string[]',
-    doseRange: 'string'
+    doseRange: 'float[]'
   }
 };
 
@@ -76,6 +77,7 @@ const interactionTagSchema = {
   name: 'Interaction',
   properties: {
     tag: 'string',
+    tagType: 'string',
     effect: 'string?',
     severity: 'string?'
   }
@@ -170,7 +172,7 @@ const updateCompendium = (data) => {
       Object.getOwnPropertyNames(responseJson).forEach(key=>{
         data.updateRealm('direct save', {schema: 'Compendium', instance: responseJson[key], rewrite: data.state.realm.objects('Compendium').filtered(`chemicalName='${responseJson[key].chemicalName}'`).length > 0 ? true : false });
       })
-      return responseJson;
+      responseJson ? data.updateState('by path and value', {path: 'message', value: "Emma's knowledge has been updated."}) : null; 
   }).catch((error) => {
       console.error(error);
   });
@@ -207,7 +209,8 @@ class App extends Component {
         notesField: null,
         imageLocationField: null
       },
-      tradeNameList: []
+      tradeNameList: [],
+      emmaAsksComponent: ["Emma can't think of any questions."]
     };
     this.updateState = this.updateState.bind(this);
     this.updateRealm = this.updateRealm.bind(this);
@@ -317,8 +320,9 @@ class App extends Component {
         {renderProfile(this.state, this.updateState)}
         {renderMedlist(this.state, this.updateState)}
         {renderTakePicture(this.state, this.updateState)}
+        {renderEmmaAsks(this.state, this.updateState)}
         {this.state.screen !== 'home' ? <BarButton color='rgba(0, 155, 95, 1)' title="Home" onPress={()=>{this.updateState('by path and value', {path: 'screen', value: 'home'})}} /> : null } 
-        {this.state.screen == 'home' ? <BarButton title='Update' onPress={()=>{ updateCompendium({updateRealm: this.updateRealm, state: this.state}); }} /> : null}
+        {this.state.screen == 'home' ? <BarButton title='Update' onPress={()=>{ updateCompendium({updateRealm: this.updateRealm, state: this.state, updateState: this.updateState}); }} /> : null}
         {/*<Button title='Console.log Compendium' onPress={()=>{console.log(this.state.realm.objects('Compendium'))}} />*/}
         {/*<Button title='Purge images' onPress={()=>{purgeAllImages();}} />*/}
       </ScrollView>
