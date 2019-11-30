@@ -22,7 +22,7 @@ export const findMatch = (data) => {
 
 //If no match found, use this to generate suggestions
 export const generateSuggestedList = (data) => {
-  //Requres data.input (what the input is), data.list (the list from which to pull suggestions), optionally can include data.also to specifiy additional stuff to find
+  //Requres data.input (what the input is), data.list (the list from which to pull suggestions)
   let regx = new RegExp(data.input, 'ig'); //For literal match of partial search term
   let index = data.input.indexOf('-');
   let inputIgnoreTag = data.input.slice(index + 1);
