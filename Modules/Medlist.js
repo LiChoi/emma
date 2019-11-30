@@ -3,6 +3,7 @@ import { Text, TextInput, Image, View, ScrollView, Button } from 'react-native';
 import {BarButton, TextButton} from './Common';
 import {styles} from './Styles';
 import {deletePreviousImage} from './Camera';
+import {getList, findMatch, generateSuggestedList} from './GenerateSuggestions';
 
 export const renderMedlist = (state, updateState) => {
     if (state.screen == 'medlist'){
@@ -146,48 +147,8 @@ const noDrugMatch = (state, updateState) => {
     }
 }
 
-const getList = (data) => {
-    let tradeNameList = [];
-    data.list.forEach((item)=>{
-        tradeNameList = [...tradeNameList, ...item[data.key]]; //tradeNameList.concat(item[data.key]); //the concat method was adding the arrays into the tradeNameList array rather than each item
-    });
-    return tradeNameList;
-} 
-
-const findMatch = (data) => {
-    let matches = false; 
-    data.list.forEach((item)=>{
-        if (data.item == item) { matches = true; }
-    });
-    return matches;
-}
-
-const generateSuggestedList = (data) => {
-  let regx = new RegExp(data.input, 'ig'); //For literal match of partial search term
-  let index = data.input.indexOf('-');
-  let inputIgnoreTag = data.input.slice(index + 1);
-  let regx2 = new RegExp(inputIgnoreTag, 'ig'); //For ignore tag and match partial search term
-  let letters = inputIgnoreTag.toLowerCase().split(""); //For fuzzy matching (ignoring tag) of full search term
-  let matches = [];
-  data.list.forEach((item)=>{
-      if ( regx.test(item) ) { matches.push(item); } 
-      else if (regx2.test(item) && inputIgnoreTag) { matches.push(item); } //Must check if inputIgnoreTag is truthy or else will match all list items
-      else {  
-          let fuzzyMatchCount = 0;
-          let index = item.indexOf('-');
-          let itemNoTag = item.toLowerCase().slice(index + 1); 
-          letters.forEach((letter, i)=>{
-              if (itemNoTag.charAt(i-1) == letter || itemNoTag.charAt(i) == letter || itemNoTag.charAt(i+1) == letter){ 
-                  fuzzyMatchCount++; 
-              } 
-          });
-          if (fuzzyMatchCount/letters.length > 0.7){ matches.push(item); } //Can adjust this to make match more strictly or loosely
-      }      
-  });
-  return matches;
-}
-
 const checkMedicationBeforeSave = (data) => {
+    //Requres data.list (compendium), data.input (tradeName), data.updateState, data.state
     let tradeNameList = getList({list: data.list, key: 'tradeNames'});
     let matchFound = findMatch( {item: data.input, list: tradeNameList} );
     if (matchFound) {
