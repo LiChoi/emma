@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
 import { Text, TextInput, Image, View, ScrollView, Button } from 'react-native';
-import {BarButton, TextButton} from './Common';
+import {BarButton, TextButton, NoMatchFound} from './Common';
 import {styles} from './Styles';
 import {deletePreviousImage} from './Camera';
-import {getList, findMatch, generateSuggestedList} from './GenerateSuggestions';
+import { identifyInputBeforeSave } from './GenerateSuggestions';
 
 export const renderMedlist = (state, updateState) => {
     if (state.screen == 'medlist'){
@@ -57,8 +57,16 @@ export const renderMedlist = (state, updateState) => {
             onChangeText={(text)=>{updateState('by path and value', {path: 'medlistComponent.tradeNameField', value: text })}}
             value={state.medlistComponent.tradeNameField} 
           />
-          <TextButton title='Add+' onPress={()=>{ checkMedicationBeforeSave({state: state, updateState: updateState, input: state.medlistComponent.tradeNameField, list: state.realm.objects('Compendium')}); }} />
-          {noDrugMatch(state, updateState)}
+          <TextButton title="Add+" onPress={()=>{ identifyInputBeforeSave({
+                  state: state, 
+                  updateState: updateState, 
+                  list: state.realm.objects('Compendium'), 
+                  searchKeys: ['tradeNames'],
+                  ifMatchSaveToRealm: 'medlist',
+                  saveRoot: 'medlistComponent',
+                  atKey: 'tradeNameField' 
+          }); }}/>    
+          <NoMatchFound type='medlist' saveRoot='medlistComponent' atKey='tradeNameField' state={state} updateState={updateState} />
           <Text></Text>
         </View>
       );
@@ -123,43 +131,3 @@ const toggleEditMedication = (state, updateState, medication) => {
         );     
     }
 }
-
-const noDrugMatch = (state, updateState) => {
-    if (state.render.noDrugMatch){
-        return (
-            <View>
-                <Text>Emma doesn't recognize the drug you entered. Please select from the list below. If you don't see a match, try entering only a partial search term.</Text>
-                <BarButton title='No. Save what I entered.' onPress={()=>{ updateState('by path and value', {path: 'render.noDrugMatch', value: false}); updateState('save', {what: 'medlist', whose: state.profileComponent.currentProfile, root: 'medlistComponent', keys: ['tradeNameField']}); }} />
-                {state.tradeNameList.map((item)=>{
-                    return (
-                        <TextButton 
-                            key={item} 
-                            title={item} 
-                            onPress={()=>{  
-                                updateState('by path and value', {path: 'medlistComponent.tradeNameField', value: item});
-                                updateState('by path and value', {path: 'render.noDrugMatch', value: false});
-                            }} 
-                        />
-                    );
-                })}
-            </View>
-        );
-    }
-}
-
-const checkMedicationBeforeSave = (data) => {
-    //Requres data.list (compendium), data.input (tradeName), data.updateState, data.state
-    let tradeNameList = getList({list: data.list, keys: ['tradeNames']});
-    let matchFound = findMatch( {item: data.input, list: tradeNameList} );
-    if (matchFound) {
-        data.updateState('save', {what: 'medlist', whose: data.state.profileComponent.currentProfile, root: 'medlistComponent', keys: ['tradeNameField']});
-    } else {
-        if (!data.input) { data.updateState('by path and value', {path: 'message', value: 'Input cannot be empty.'}); } 
-        else {
-          data.updateState('by path and value', {path: 'render.noDrugMatch', value: true});
-          data.updateState('by path and value', {path: 'tradeNameList', value: generateSuggestedList({input: data.input, list: tradeNameList}) }); 
-        }
-    }
-}
-
-

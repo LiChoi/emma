@@ -4,7 +4,7 @@ import {BarButton, TextButton, NoMatchFound} from './Common';
 import {styles} from './Styles';
 import {handleEmail, composeEmail} from './Emailer';
 import {PrepareReport} from './Analysis';
-import {getList, findMatch, generateSuggestedList, identifyInputBeforeSave} from './GenerateSuggestions';
+import {identifyInputBeforeSave} from './GenerateSuggestions';
 
 export const renderProfile = (state, updateState) => {
     if (state.screen == 'profile'){
@@ -194,42 +194,3 @@ const renderEditConditionDetails = (state, updateState, condition) => {
       );
     }
 }
-
-const noAllergyMatch = (state, updateState) => {
-  if (state.render.noAllergyMatch){
-    return (
-        <View>
-            <Text>Emma doesn't recognize the allergy you entered. Please select from the list below. If you don't see a match, or if it's not a drug allergy, then go ahead and save what you entered.</Text>
-            <BarButton title='Save what I entered.' onPress={()=>{ updateState('by path and value', {path: 'render.noAllergyMatch', value: false}); updateState('save', {what: 'allergies', whose: state.profileComponent.currentProfile, root: 'profileComponent', keys: ['allergyField']}); }} />
-            {state.tradeNameList.map((item)=>{
-                return (
-                    <TextButton 
-                        key={item} 
-                        title={item} 
-                        onPress={()=>{  
-                            updateState('by path and value', {path: 'profileComponent.allergyField', value: item});
-                            updateState('by path and value', {path: 'render.noAllergyMatch', value: false});
-                        }} 
-                    />
-                );
-            })}
-        </View>
-    );
-  }
-}
-/*
-const identifyAllergyBeforeSave = (data) => {
-  //Requires data.list (compendium), data.input (allergy), data.updateState, data.state
-  let tradeNameList = getList({list: data.list, keys: ['tradeNames', 'class']});
-  let matchFound = findMatch( {item: data.input, list: tradeNameList} );
-  if (matchFound) {
-      data.updateState('save', {what: 'allergies', whose: data.state.profileComponent.currentProfile, root: 'profileComponent', keys: ['allergyField']});
-  } else {
-      if (!data.input) { data.updateState('by path and value', {path: 'message', value: 'Input cannot be empty.'}); } 
-      else {
-        data.updateState('by path and value', {path: 'render.noAllergyMatch', value: true});
-        data.updateState('by path and value', {path: 'tradeNameList', value: generateSuggestedList({input: data.input, list: tradeNameList}) }); 
-      }
-  }
-}
-*/
