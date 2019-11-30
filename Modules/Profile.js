@@ -203,7 +203,7 @@ const noAllergyMatch = (state, updateState) => {
 
 const identifyAllergyBeforeSave = (data) => {
   //Requires data.list (compendium), data.input (allergy), data.updateState, data.state
-  let tradeNameList = getList({list: data.list, key: 'tradeNames'});
+  let tradeNameList = getList({list: data.list, keys: ['tradeNames', 'class']});
   let matchFound = findMatch( {item: data.input, list: tradeNameList} );
   if (matchFound) {
       data.updateState('save', {what: 'allergies', whose: data.state.profileComponent.currentProfile, root: 'profileComponent', keys: ['allergyField']});

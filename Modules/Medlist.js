@@ -149,7 +149,7 @@ const noDrugMatch = (state, updateState) => {
 
 const checkMedicationBeforeSave = (data) => {
     //Requres data.list (compendium), data.input (tradeName), data.updateState, data.state
-    let tradeNameList = getList({list: data.list, key: 'tradeNames'});
+    let tradeNameList = getList({list: data.list, keys: ['tradeNames']});
     let matchFound = findMatch( {item: data.input, list: tradeNameList} );
     if (matchFound) {
         data.updateState('save', {what: 'medlist', whose: data.state.profileComponent.currentProfile, root: 'medlistComponent', keys: ['tradeNameField']});

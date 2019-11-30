@@ -1,9 +1,12 @@
-//From a database, generate a list containing only relevant items 
+//From a database, generate a list containing the items you want to check against
 export const getList = (data) => {
-    //requres data.list (contains an array of data, eg compendium), data.key (key of the relevant subdata you want)
+    //requres data.list (contains an array of data, eg compendium), data.keys (keys of the relevant subdata you want)
     let tradeNameList = [];
     data.list.forEach((item)=>{
-        tradeNameList = [...tradeNameList, ...item[data.key]]; //tradeNameList.concat(item[data.key]); //the concat method was adding the arrays into the tradeNameList array rather than each item
+        data.keys.forEach((key)=>{
+            if (key == 'tradeNames') { tradeNameList = [...tradeNameList, ...item[key]]; }  //the concat method was adding the arrays into the tradeNameList array rather than each item for some reason
+            else if (key == 'class' && tradeNameList.indexOf(item[key]) == -1) { tradeNameList = [...tradeNameList, item[key]]; }
+        });
     });
     return tradeNameList;
 } 
@@ -19,7 +22,7 @@ export const findMatch = (data) => {
 
 //If no match found, use this to generate suggestions
 export const generateSuggestedList = (data) => {
-  //Requres data.input (what the input is), data.list (the list from which to pull suggestions)
+  //Requres data.input (what the input is), data.list (the list from which to pull suggestions), optionally can include data.also to specifiy additional stuff to find
   let regx = new RegExp(data.input, 'ig'); //For literal match of partial search term
   let index = data.input.indexOf('-');
   let inputIgnoreTag = data.input.slice(index + 1);
@@ -39,7 +42,7 @@ export const generateSuggestedList = (data) => {
               } 
           });
           if (fuzzyMatchCount/letters.length > 0.7){ matches.push(item); } //Can adjust this to make match more strictly or loosely
-      }      
+      } 
   });
   return matches;
 }
