@@ -210,7 +210,7 @@ class App extends Component {
         imageLocationField: null
       },
       tradeNameList: [],
-      emmaAsksComponent: ["Fi", "Fi", "Fo", "Fumb"]
+      emmaAsksComponent: ["Emma can't think of any questions."]
     };
     this.updateState = this.updateState.bind(this);
     this.updateRealm = this.updateRealm.bind(this);
