@@ -1,9 +1,10 @@
 import React from 'react';
 import { Text, TextInput, View } from 'react-native';
-import {BarButton, TextButton} from './Common';
+import {BarButton, TextButton, NoMatchFound} from './Common';
 import {styles} from './Styles';
 import {handleEmail, composeEmail} from './Emailer';
 import {PrepareReport} from './Analysis';
+import {identifyInputBeforeSave} from './GenerateSuggestions';
 
 export const renderProfile = (state, updateState) => {
     if (state.screen == 'profile'){
@@ -23,7 +24,7 @@ export const renderProfile = (state, updateState) => {
                 <Text>{'\n'}</Text>
                 <BarButton title="View med list" onPress={()=>{updateState('by path and value', {path: 'screen', value: 'medlist'})}}/>
                 <BarButton title="Emma Asks" onPress={()=>{ 
-                  updateState('by path and value', {path: 'emmaAsksComponent', value: PrepareReport(state.realm.objects('User').filtered(`name='${state.profileComponent.currentProfile}'`)[0].medlist, state.realm.objects('Compendium')) }); 
+                  updateState('by path and value', {path: 'emmaAsksComponent', value: PrepareReport( state.realm.objects('User').filtered(`name='${state.profileComponent.currentProfile}'`)[0], state.realm.objects('Compendium'), state.realm.objects('Medical Terms') ) }); 
                   updateState('by path and value', {path: 'screen', value: 'emmaAsks'}); 
                 }} />
                 <BarButton title="Email Profile" onPress={()=>{handleEmail(
@@ -56,7 +57,16 @@ const renderAddAllergy = (state, updateState) => {
                 onChangeText={(text)=>{updateState('by path and value', {path: 'profileComponent.allergyField', value: text })}}
                 value={state.profileComponent.allergyField} 
             />
-            <TextButton title='Add+' onPress={()=>{updateState('save', {what: 'allergies', whose: state.profileComponent.currentProfile, root: 'profileComponent', keys: ['allergyField']}); }} />
+            <TextButton title="Add+" onPress={()=>{ identifyInputBeforeSave({
+                  state: state, 
+                  updateState: updateState, 
+                  list: state.realm.objects('Compendium'), 
+                  searchKeys: ['tradeNames', 'class'],
+                  ifMatchSaveToRealm: 'allergies',
+                  saveRoot: 'profileComponent',
+                  atKey: 'allergyField' 
+            }); }}/> 
+            <NoMatchFound type='allergies' saveRoot='profileComponent' atKey='allergyField' state={state} updateState={updateState} />
         </View>
       );
     }
@@ -72,7 +82,16 @@ const renderAddCondition = (state, updateState) => {
                     onChangeText={(text)=>{updateState('by path and value', {path: 'profileComponent.conditionField', value: text })}}
                     value={state.profileComponent.conditionField} 
                 />
-                <TextButton title="Add+" onPress={()=>{ updateState('save', {what: 'conditions', whose: state.profileComponent.currentProfile, root: 'profileComponent', keys: ['conditionField']}); }}/>
+                <TextButton title="Add+" onPress={()=>{ identifyInputBeforeSave({
+                  state: state, 
+                  updateState: updateState, 
+                  list: state.realm.objects('Medical Terms'), 
+                  searchKeys: ['relatedTerms'],
+                  ifMatchSaveToRealm: 'conditions',
+                  saveRoot: 'profileComponent',
+                  atKey: 'conditionField' 
+                }); }}/>    
+                <NoMatchFound type='conditions' saveRoot='profileComponent' atKey='conditionField' state={state} updateState={updateState} />
             </View>
         );
     }
