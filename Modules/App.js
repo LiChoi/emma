@@ -83,7 +83,16 @@ const interactionTagSchema = {
   }
 };
 
-const schemas = [userSchema, conditionSchema, allergySchema, medicationSchema, compendiumSchema, interactionTagSchema];
+const medicalTermsSchema = {
+  name: 'Medical Terms',
+  primaryKey: 'primaryTerm',
+  properties: {
+    primaryTerm: 'string',
+    relatedTerms: 'string[]'
+  }
+}
+
+const schemas = [userSchema, conditionSchema, allergySchema, medicationSchema, compendiumSchema, interactionTagSchema, medicalTermsSchema];
 //End of realm constants
 
 //Functions and constants used in updateState and updateRealm
@@ -171,6 +180,15 @@ const updateCompendium = (data) => {
       console.log(responseJson);
       Object.getOwnPropertyNames(responseJson).forEach(key=>{
         data.updateRealm('direct save', {schema: 'Compendium', instance: responseJson[key], rewrite: data.state.realm.objects('Compendium').filtered(`chemicalName='${responseJson[key].chemicalName}'`).length > 0 ? true : false });
+      })
+      responseJson ? data.updateState('by path and value', {path: 'message', value: "Emma's knowledge has been updated."}) : null; 
+  }).catch((error) => {
+      console.error(error);
+  });
+  fetch('https://emma-server.glitch.me/conditions').then((response) => response.json()).then((responseJson) => {
+      console.log(responseJson);
+      Object.getOwnPropertyNames(responseJson).forEach(key=>{
+        data.updateRealm('direct save', {schema: 'Medical Terms', instance: responseJson[key], rewrite: data.state.realm.objects('Medical Terms').filtered(`primaryTerm='${responseJson[key].primaryTerm}'`).length > 0 ? true : false });
       })
       responseJson ? data.updateState('by path and value', {path: 'message', value: "Emma's knowledge has been updated."}) : null; 
   }).catch((error) => {

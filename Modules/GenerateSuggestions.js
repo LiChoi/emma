@@ -1,22 +1,38 @@
-//From a database, generate a list containing the items you want to check against
+
+export const identifyInputBeforeSave = (data) => {
+    //Requires data.list, data.searchKeys, data.updateState, data.state, data.ifMatchSaveToRealm, data.saveRoot, data.atKey
+    let list = getList({list: data.list, keys: data.searchKeys});
+    let input = data.state[data.saveRoot][data.atKey]
+    let matchFound = list.indexOf(input);
+    if(matchFound !== -1){
+        data.updateState('save', {what: data.ifMatchSaveToRealm, whose: data.state.profileComponent.currentProfile, root: data.saveRoot, keys: [data.atKey]});
+    } else {
+        if (!input) { data.updateState('by path and value', {path: 'message', value: 'Input cannot be empty.'}); } 
+        else {
+            data.updateState('by path and value', {path: `render.${data.ifMatchSaveToRealm}NoMatch`, value: true});
+            data.updateState('by path and value', {path: 'suggestedList', value: generateSuggestedList({input: input, list: list}) }); 
+        }
+    }
+}
+
 export const getList = (data) => {
     //requres data.list (contains an array of data, eg compendium), data.keys (keys of the relevant subdata you want)
-    let tradeNameList = [];
+    let list = [];
     data.list.forEach((item)=>{
         data.keys.forEach((key)=>{
-            if (key == 'tradeNames') { tradeNameList = [...tradeNameList, ...item[key]]; }  //the concat method was adding the arrays into the tradeNameList array rather than each item for some reason
-            else if (key == 'class' && tradeNameList.indexOf(item[key]) == -1) { tradeNameList = [...tradeNameList, item[key]]; }
+            if ( key == 'class' && list.indexOf(item[key]) == -1 ) { list = [...list, item[key]]; }
+            else { list = [...list, ...item[key]]; } 
         });
     });
-    return tradeNameList;
+    return list;
 } 
 
 //Use to find a match before generating suggestions
 export const findMatch = (data) => {
     let matches = false; 
-    data.list.forEach((item)=>{
-        if (data.item == item) { matches = true; }
-    });
+    for(let i = 0; i < data.list.length; i++){
+        if (data.item == data.list[i]) { matches = true; i = data.list.length; }
+    }
     return matches;
 }
 
