@@ -1,7 +1,8 @@
-import React, { Component } from 'react';
-import { Text, TextInput, Image, View, ScrollView, Button } from 'react-native';
-import {BarButton, TextButton} from './Common';
+import React from 'react';
+import { Text, View } from 'react-native';
+import {BarButton} from './Common';
 import {styles} from './Styles';
+import {handleEmail, composeInteractionEmail} from './Emailer';
 
 export const renderEmmaAsks = (state, updateState) => {
     if (state.screen == 'emmaAsks'){
@@ -20,6 +21,19 @@ export const renderEmmaAsks = (state, updateState) => {
                     );
                 }) : <View style={styles.messageContainer} ><Text style={styles.messageText} >Emma can't think of any questions.</Text></View>}
                 <Text></Text>
+                <BarButton title='Email your medical provider' onPress={()=>{ 
+                    handleEmail(
+                        {
+                            subject: "Questions about my medication therapy", //String
+                            recipients: [], //array of strings
+                            ccRecipients: [], //array of strings
+                            bccRecipients: [], //array of strings
+                            body: composeInteractionEmail(state), //string
+                            isHTML: false, //boolean
+                            attachment: {}
+                        }
+                    );
+                 }} />
                 <BarButton title='Back to profile' onPress={()=>{updateState('by path and value', {path: 'screen', value: 'profile'})}} />
             </View>
         );

@@ -172,7 +172,7 @@ const updateCompendium = (data) => {
       Object.getOwnPropertyNames(responseJson).forEach(key=>{
         data.updateRealm('direct save', {schema: 'Compendium', instance: responseJson[key], rewrite: data.state.realm.objects('Compendium').filtered(`chemicalName='${responseJson[key].chemicalName}'`).length > 0 ? true : false });
       })
-      return responseJson;
+      responseJson ? data.updateState('by path and value', {path: 'message', value: "Emma's knowledge has been updated."}) : null; 
   }).catch((error) => {
       console.error(error);
   });
@@ -322,7 +322,7 @@ class App extends Component {
         {renderTakePicture(this.state, this.updateState)}
         {renderEmmaAsks(this.state, this.updateState)}
         {this.state.screen !== 'home' ? <BarButton color='rgba(0, 155, 95, 1)' title="Home" onPress={()=>{this.updateState('by path and value', {path: 'screen', value: 'home'})}} /> : null } 
-        {this.state.screen == 'home' ? <BarButton title='Update' onPress={()=>{ updateCompendium({updateRealm: this.updateRealm, state: this.state}); }} /> : null}
+        {this.state.screen == 'home' ? <BarButton title='Update' onPress={()=>{ updateCompendium({updateRealm: this.updateRealm, state: this.state, updateState: this.updateState}); }} /> : null}
         {/*<Button title='Console.log Compendium' onPress={()=>{console.log(this.state.realm.objects('Compendium'))}} />*/}
         {/*<Button title='Purge images' onPress={()=>{purgeAllImages();}} />*/}
       </ScrollView>

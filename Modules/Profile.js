@@ -28,16 +28,16 @@ export const renderProfile = (state, updateState) => {
                 }} />
                 <BarButton title="Email Profile" onPress={()=>{handleEmail(
                     {
-                        subject: "Profile", //String
+                        subject: "Medical Profile", //String
                         recipients: [], //array of strings
                         ccRecipients: [], //array of strings
                         bccRecipients: [], //array of strings
                         body: composeEmail(state), //string
                         isHTML: false, //boolean
                         attachment: {
-                            path: "",  // The absolute path of the file from which to read data.
-                            type: "",   // Mime Type: jpg, png, doc, ppt, html, pdf, csv
-                            name: "",   // Optional: Custom filename for attachment
+                            //path: "",  // The absolute path of the file from which to read data.
+                            //type: "",   // Mime Type: jpg, png, doc, ppt, html, pdf, csv
+                            //name: "",   // Optional: Custom filename for attachment
                         }
                     }
                 )}} />

@@ -11,7 +11,7 @@ const CheckForDTPs = (medlist, compendium) => {
     let drugs = [];
     medlist.forEach((drug)=>{
         let foundMatch = FindCompendiumEntry(drug.tradeName, compendium);
-        if (foundMatch) { drugs.push(foundMatch); } 
+        if (foundMatch) { foundMatch.tradeName = drug.tradeName; drugs.push(foundMatch); } 
     });
     let DTPs = [];
     //Iterate over array of matching drug entries 
@@ -22,7 +22,7 @@ const CheckForDTPs = (medlist, compendium) => {
             drug.interactionTags.forEach((tag)=>{
                 //If a tag matches the drug being checked, then push the relevant information into the DTP (drug-therapy-problem) array
                 if ( tag.tag == drugs[i].class || tag.tag == drugs[i].chemicalName ) {
-                    DTPs.push({drug1: drug.chemicalName, drug2: drugs[i].chemicalName, tag: tag});
+                    DTPs.push({drug1: drug.tradeName, drug2: drugs[i].tradeName, tag: tag});
                 }
             });
         }
