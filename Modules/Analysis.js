@@ -51,8 +51,9 @@ const CheckForAllergies = (allergies, medlist, compendium) => {
 }
 
 const CheckForContraindications = (profile, compendium, medicalTerms) => {
-    //Map profile conditions to primary medical terms
-    //Check each drug's contraindications, see if matches array of primary medical terms  
+    //Map profile conditions to primary medical terms, then check each drug's contraindications to find any matches  
+    let originalConditionTerms = [...profile.conditions]; 
+    let ageRanges = medicalTerms.filtered(`primaryTerm='age'`)[0].relatedTerms;
     let conditions = profile.conditions.map((condition)=>{
         let matchedTerm = false;
         for(let i = 0; i < medicalTerms.length; i++){
@@ -61,6 +62,10 @@ const CheckForContraindications = (profile, compendium, medicalTerms) => {
         }
         return matchedTerm ? matchedTerm : condition.name ; //If no match found, return condition as is. It'll simply be ignored in next step
     });
+    ageRanges.forEach((range)=>{
+        let matchedRange = ReturnMatchedAgeRange(range, CalculateAge(profile.birthday));
+        if (matchedRange) { conditions.push(range); originalConditionTerms.push({name: range, details: ""}); } //necessary to add also to originalConditionTerms as array lengths and position of items must match
+    });
     let contraindicationsFound = [];
     profile.medlist.forEach((drug)=>{
         let entry = FindCompendiumEntry(drug.tradeName, compendium); 
@@ -68,7 +73,7 @@ const CheckForContraindications = (profile, compendium, medicalTerms) => {
             entry.contraindications.forEach((CI)=>{
                 let matchLocation = conditions.indexOf(CI);
                 if (matchLocation !== -1){
-                    contraindicationsFound.push(`Taking ${drug.tradeName} with condition: ${profile.conditions[matchLocation].name}`); //Profile.conditions because want to use same terminology that patint inputted, rather than the primary term
+                    contraindicationsFound.push(`Taking ${drug.tradeName} with condition: ${originalConditionTerms[matchLocation].name}`); //Profile.conditions because want to use same terminology that patint inputted, rather than the primary term
                 } 
             });
         }
@@ -96,4 +101,16 @@ const FindCompendiumEntry = (tradeName, compendium) => {
         }
     }
     return foundEntry;
+}
+
+const CalculateAge = (birthday) => {
+    let now = new Date(Date.now());
+    return now.getFullYear() - birthday.getFullYear(); 
+}
+
+const ReturnMatchedAgeRange = (range, age) => {
+    // Range: age=#, age<#, age<=#, age>#, age>=#, #<age<#, #<=age<#, etc 
+    let expression = range.replace('age', age);
+    let matchesRange = eval(expression);
+    return matchesRange ? range : false;
 }
