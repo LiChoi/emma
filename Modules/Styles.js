@@ -22,7 +22,7 @@ export const styles = {
     justifyContent: 'center'
   },
   name: {
-    fontSize: 40, 
+    fontSize: 30, 
     color: darkMedicalGreen, 
     fontWeight: 'bold', 
     textAlign: 'center'
