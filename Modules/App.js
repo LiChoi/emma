@@ -340,7 +340,7 @@ class App extends Component {
         {renderMedlist(this.state, this.updateState)}
         {renderTakePicture(this.state, this.updateState)}
         {renderEmmaAsks(this.state, this.updateState)}
-        {renderAbout(this.state, this.updateState)}
+        {renderAbout(this.state)}
         {this.state.screen !== 'home' ? <BarButton color='rgba(0, 155, 95, 1)' title="Home" onPress={()=>{this.updateState('by path and value', {path: 'screen', value: 'home'})}} /> : null } 
         {this.state.screen == 'home' ? <BarButton title='Update' onPress={()=>{ updateCompendium({updateRealm: this.updateRealm, state: this.state, updateState: this.updateState}); }} /> : null}
         {this.state.screen == 'home' ? <BarButton title='About Emma' onPress={()=>{ this.updateState('by path and value', {path: 'screen', value: 'about'}) }} /> : null}
