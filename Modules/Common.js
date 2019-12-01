@@ -5,9 +5,14 @@ import {fadedDarkMedicalGreen, styles} from './Styles';
 export const renderMessage = (state, updateState) => {
     if (state.message){
         return (
-            <View style={styles.messageContainer}>
-            <Text style={styles.messageText}>{state.message}</Text>
-            <BarButton title="Close" onPress={()=>{updateState('by path and value', {path: 'message', value: null})}} />
+            <View style={styles.messageScreenCover}>
+                <View></View>
+                <View style={styles.messageContainer}>
+                    <Text style={styles.messageText}>{state.message}</Text>
+                    <BarButton title="Close" onPress={()=>{updateState('by path and value', {path: 'message', value: null})}} />
+                </View>
+                <View></View>
+                <View></View>
             </View>
         );
     }

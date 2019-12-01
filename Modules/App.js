@@ -331,8 +331,8 @@ class App extends Component {
   render() {
     return (
       <View style={styles.scrollContainer}>
+      {renderMessage(this.state, this.updateState)}
       <ScrollView style={styles.appContainer} contentContainerStyle={{flexGrow: 1}}>
-        {renderMessage(this.state, this.updateState)}
         {renderHome(this.state, this.updateState)}
         {createProfile(this.state, this.updateState, this.updateRealm)}
         {renderProfile(this.state, this.updateState)}
