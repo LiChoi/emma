@@ -1,9 +1,8 @@
 import React from 'react';
 import { Text, View } from 'react-native';
-import {BarButton} from './Common';
 import {styles} from './Styles';
 
-export const renderAbout = (state, updateState) => {
+export const renderAbout = (state) => {
     if (state.screen == 'about'){
         return (
             <View>
