@@ -52,10 +52,21 @@ export const styles = {
     width: 150,
     marginTop: 5
   },
+  messageScreenCover: {
+    position: 'absolute',
+    height: '110%', 
+    width: '110%', 
+    zIndex: 10, 
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    alignSelf: 'center',
+    justifyContent: 'space-around',
+    padding: 15,
+  },
   messageContainer: {
+    backgroundColor: lightMedicalGreen,
     borderRadius: 10,
     borderWidth: 3,
-    borderColor: 'red'
+    borderColor: 'red',
   },
   messageText: {
     color: 'red',
