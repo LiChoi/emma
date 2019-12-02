@@ -10,6 +10,7 @@ import {renderMedlist} from './Medlist';
 import { renderTakePicture, deletePreviousImage, purgeAllImages} from './Camera';
 import {renderEmmaAsks} from './EmmaAsks';
 import {renderAbout} from './About';
+import {renderWelcome} from './Welcome';
 
 //Beginning of realm constants
 const Realm = require('realm');
@@ -204,7 +205,7 @@ class App extends Component {
     this.state = {
       realm: null,
       message: null,
-      screen: 'home',
+      screen: 'welcome',
       render: {editAllergyDetails: false, editConditionDetails: false, editMedication: false, deleteProfile: false}, 
       createProfileComponent: {
         name: null,
@@ -341,11 +342,13 @@ class App extends Component {
         {renderTakePicture(this.state, this.updateState)}
         {renderEmmaAsks(this.state, this.updateState)}
         {renderAbout(this.state)}
-        {this.state.screen !== 'home' ? <BarButton color='rgba(0, 155, 95, 1)' title="Home" onPress={()=>{this.updateState('by path and value', {path: 'screen', value: 'home'})}} /> : null } 
+        {renderWelcome(this.state, this.updateState)}
+        {['home', 'welcome'].indexOf(this.state.screen) == -1 ? <BarButton color='rgba(0, 155, 95, 1)' title="Home" onPress={()=>{this.updateState('by path and value', {path: 'screen', value: 'home'})}} /> : null } 
         {this.state.screen == 'home' ? <BarButton title='Update' onPress={()=>{ updateCompendium({updateRealm: this.updateRealm, state: this.state, updateState: this.updateState}); }} /> : null}
         {this.state.screen == 'home' ? <BarButton title='About Emma' onPress={()=>{ this.updateState('by path and value', {path: 'screen', value: 'about'}) }} /> : null}
         {/*<Button title='Console.log Compendium' onPress={()=>{console.log(this.state.realm.objects('Compendium'))}} />*/}
         {/*<Button title='Purge images' onPress={()=>{purgeAllImages();}} />*/}
+        {/*<Button title='Welcome' onPress={()=>{this.setState({screen: 'welcome'})}} />*/}
       </ScrollView>
       </View>
     );

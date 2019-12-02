@@ -122,6 +122,17 @@ export const styles = {
     textAlign: 'center',
     color: darkMedicalGreen,
     fontWeight: 'bold'
+  },
+  welcomeScreen: {
+    flex: 1,
+    paddingLeft: 50,
+    justifyContent: 'center'
+  },
+  welcomeText: {
+    fontSize: 20, 
+    color: darkMedicalGreen, 
+    fontWeight: 'bold', 
+    textAlign: 'left'
   }
 }
 
