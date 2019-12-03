@@ -70,10 +70,18 @@ const compendiumSchema = {
     indications: 'string[]',
     interactionTags: 'Interaction[]',
     crossAllergies: 'string[]',
-    contraindications: 'string[]',
+    contraindications: 'Contraindication[]',
     doseRange: 'float[]'
   }
 };
+
+const contraindicationSchema = {
+  name: 'Contraindication',
+  properties: {
+    tag: 'string',
+    details: 'string'
+  }
+}
 
 const interactionTagSchema = {
   name: 'Interaction',
@@ -94,7 +102,7 @@ const medicalTermsSchema = {
   }
 }
 
-const schemas = [userSchema, conditionSchema, allergySchema, medicationSchema, compendiumSchema, interactionTagSchema, medicalTermsSchema];
+const schemas = [userSchema, conditionSchema, allergySchema, medicationSchema, compendiumSchema, interactionTagSchema, medicalTermsSchema, contraindicationSchema];
 //End of realm constants
 
 //Functions and constants used in updateState and updateRealm
