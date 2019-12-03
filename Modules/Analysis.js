@@ -13,7 +13,8 @@ const CheckForInteractions = (medlist, compendium) => {
     let drugs = [];
     medlist.forEach((drug)=>{
         let foundMatch = FindCompendiumEntry(drug.tradeName, compendium);
-        if (foundMatch) { foundMatch.tradeName = drug.tradeName; drugs.push(foundMatch); } 
+        if (foundMatch) { foundMatch.tradeName = drug.tradeName; drugs.unshift(foundMatch); } //Move indentified drugs to front of array and unindentified to end to ensure known drugs get checked first. If check unidentitied drugs first, there will be no interactionTags, thus won't identify DI's, and if interaction exists with drug at end of array, that drug won't be checked against earlier drugs in array.
+        else { foundMatch = {tradeName: drug.tradeName, chemicalName: drug.tradeName, class: "I don't know", interactionTags: ["Unknown"]}; drugs.push(foundMatch); } //If no corresponding entry, create an entry with dummy values and assume chemicalName=tradeName
     });
     let DTPs = [];
     //Iterate over array of matching drug entries 
@@ -71,9 +72,9 @@ const CheckForContraindications = (profile, compendium, medicalTerms) => {
         let entry = FindCompendiumEntry(drug.tradeName, compendium); 
         if (entry){
             entry.contraindications.forEach((CI)=>{
-                let matchLocation = conditions.indexOf(CI);
+                let matchLocation = conditions.indexOf(CI.tag);
                 if (matchLocation !== -1){
-                    contraindicationsFound.push(`Taking ${drug.tradeName} with condition: ${originalConditionTerms[matchLocation].name}`); //Profile.conditions because want to use same terminology that patint inputted, rather than the primary term
+                    contraindicationsFound.push(`Taking ${drug.tradeName} with condition of ${originalConditionTerms[matchLocation].name}. ${CI.details}`); //Profile.conditions because want to use same terminology that patint inputted, rather than the primary term
                 } 
             });
         }

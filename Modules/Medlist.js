@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Text, TextInput, Image, View, ScrollView, Button } from 'react-native';
+import { Text, TextInput, Image, View } from 'react-native';
 import {BarButton, TextButton, NoMatchFound} from './Common';
 import {styles} from './Styles';
 import {deletePreviousImage} from './Camera';
@@ -93,8 +93,6 @@ const toggleEditMedication = (state, updateState, medication) => {
                 {toggleMedicationField(state, updateState, 'chemicalName')}
                 <Text style={styles.innerText}>Strength:</Text>
                 {toggleMedicationField(state, updateState, 'strength')}
-                <Text style={styles.innerText}>Unit:</Text>
-                {toggleMedicationField(state, updateState, 'unit')}
                 <Text style={styles.innerText}>Used for:</Text>
                 {toggleMedicationField(state, updateState, 'purpose')}
                 <Text style={styles.innerText}>Prescriber:</Text>
@@ -119,7 +117,7 @@ const toggleEditMedication = (state, updateState, medication) => {
         return (
             <View>
                 <Text style={styles.innerText}>Chemical name: {medication.chemicalName}</Text>
-                <Text style={styles.innerText}>Strength: {Math.round(medication.strength*1000)/1000+medication.unit}</Text>
+                <Text style={styles.innerText}>Strength: {medication.strength}</Text>
                 <Text style={styles.innerText}>Used for: {medication.purpose}</Text>
                 <Text style={styles.innerText}>Prescriber: {medication.prescriber}</Text>
                 <Text style={styles.innerText}>Directions: {medication.directions}</Text>
