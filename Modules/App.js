@@ -48,8 +48,7 @@ const medicationSchema = {
   properties: {
     tradeName: 'string',
     chemicalName: 'string?',
-    strength: 'float?',
-    unit: 'string?',
+    strength: 'string?',
     directions: 'string?',
     purpose: 'string?',
     prescriber: 'string?',
@@ -149,7 +148,7 @@ const checkInputCorrect = (state, data) => {
   let cannotBeEmpty = ['name', 'birthday', 'allergyField', 'conditionField', 'tradeNameField']; 
   let mustBeUnique = ['name', 'allergyField', 'conditionField', 'tradeNameField'];
   let mustBeDate = ['birthday'];
-  let mustBeNumber = ['strengthField']; 
+  let mustBeNumber = []; //strengthField used to be here, but now doing strength as string due to possibility of more than 1 active ingredient per tablet. Leaving logic intact in case need in future.
   let errorMessage = "";
   data.keys.forEach((key) => {
     if ( cannotBeEmpty.indexOf(key) > -1 && ( !state[data.root][key] || !/\S/.test(state[data.root][key]) ) ){
@@ -260,7 +259,7 @@ class App extends Component {
       case 'load medication fields':
         let keys = Object.keys(data);
         keys.forEach((field)=>{
-          this.updateState('by path and value', {path: `medlistComponent.${field}Field`, value: (field == 'strength' && typeof data[field] == 'number') ? (Math.round(data[field]*1000)/1000).toString() : data[field] });
+          this.updateState('by path and value', {path: `medlistComponent.${field}Field`, value: data[field] });
         });
         break;
       case 'delete':
@@ -301,8 +300,7 @@ class App extends Component {
               listToUpdate = listToUpdate.map((item)=>{
                 if (item[stateToRealm[primaryStateKey]] == data.which) {
                   data.keys.forEach((key)=>{
-                    if (key == 'strengthField'){ item[stateToRealm[key]] = this.state[data.root][key] ? parseFloat(this.state[data.root][key]) : 0;}
-                    else {item[stateToRealm[key]] = this.state[data.root][key];}
+                    item[stateToRealm[key]] = this.state[data.root][key];
                   });
                   didUpdateList = true;
                   return item;
