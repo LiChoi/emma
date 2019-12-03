@@ -229,7 +229,6 @@ class App extends Component {
         tradeNameField: null,
         chemicalNameField: null,
         strengthField: null,
-        unitField: null,
         directionsField: null,
         purposeField: null,
         prescriberField: null,
