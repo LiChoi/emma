@@ -125,14 +125,13 @@ export const styles = {
   },
   welcomeScreen: {
     flex: 1,
-    paddingLeft: 50,
+    padding: 50,
     justifyContent: 'center'
   },
   welcomeText: {
     fontSize: 20, 
     color: darkMedicalGreen, 
-    fontWeight: 'bold', 
-    textAlign: 'left'
+    fontWeight: 'bold'
   }
 }
 
