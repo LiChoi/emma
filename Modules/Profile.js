@@ -12,21 +12,6 @@ export const renderProfile = (state, updateState) => {
             <View>
                 <Text style={styles.name}>{state.profileComponent.currentProfile}</Text>
                 <Text style={{textAlign: 'center'}}>{state.realm.objects('User').map((user, i)=>{if(user.name == state.profileComponent.currentProfile){return user.birthday.toDateString().slice(4);}})}</Text>
-                {deleteProfile(state, updateState)}
-                <Text>{'\n'}</Text>
-                <Text style={styles.label}>Allergies:</Text>
-                {renderAllergyList(state, updateState)}
-                {renderAddAllergy(state, updateState)}
-                <Text>{'\n'}</Text>
-                <Text style={styles.label}>Medical Conditions:</Text>
-                {renderConditionList(state, updateState)}
-                {renderAddCondition(state, updateState)}
-                <Text>{'\n'}</Text>
-                <BarButton title="View med list" onPress={()=>{updateState('by path and value', {path: 'screen', value: 'medlist'})}}/>
-                <BarButton title="Emma Asks" onPress={()=>{ 
-                  updateState('by path and value', {path: 'emmaAsksComponent', value: PrepareReport( state.realm.objects('User').filtered(`name='${state.profileComponent.currentProfile}'`)[0], state.realm.objects('Compendium'), state.realm.objects('Medical Terms') ) }); 
-                  updateState('by path and value', {path: 'screen', value: 'emmaAsks'}); 
-                }} />
                 <BarButton title="Email Profile" onPress={()=>{handleEmail(
                     {
                         subject: "Medical Profile", //String
@@ -42,6 +27,21 @@ export const renderProfile = (state, updateState) => {
                         }
                     }
                 )}} />
+                {deleteProfile(state, updateState)}
+                <Text>{'\n'}</Text>
+                <Text style={styles.label}>Allergies:</Text>
+                {renderAllergyList(state, updateState)}
+                {renderAddAllergy(state, updateState)}
+                <Text>{'\n'}</Text>
+                <Text style={styles.label}>Medical Conditions:</Text>
+                {renderConditionList(state, updateState)}
+                {renderAddCondition(state, updateState)}
+                <Text>{'\n'}</Text>
+                <BarButton title="View med list" onPress={()=>{updateState('by path and value', {path: 'screen', value: 'medlist'})}}/>
+                <BarButton title="Emma Asks" onPress={()=>{ 
+                  updateState('by path and value', {path: 'emmaAsksComponent', value: PrepareReport( state.realm.objects('User').filtered(`name='${state.profileComponent.currentProfile}'`)[0], state.realm.objects('Compendium'), state.realm.objects('Medical Terms') ) }); 
+                  updateState('by path and value', {path: 'screen', value: 'emmaAsks'}); 
+                }} />
             </View>
         );
     }
@@ -100,7 +100,7 @@ const renderAddCondition = (state, updateState) => {
 const deleteProfile = (state, updateState) => {
     if (!state.render.deleteProfile){
       return (
-        <BarButton title="Delete profile" onPress={()=>{updateState('by path and value', {path: 'render.deleteProfile', value: true})}} />
+        <TextButton title="Delete profile" onPress={()=>{updateState('by path and value', {path: 'render.deleteProfile', value: true})}} />
       );
     } else {
       return (
