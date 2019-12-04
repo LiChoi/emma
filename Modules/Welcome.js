@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, TouchableHighlight, Image } from 'react-native';
+import { View, TouchableHighlight, Image, Text } from 'react-native';
 import {FadeInText, ResizeText, FadeInView} from './Animations';
 import {styles} from './Styles';
 
@@ -15,7 +15,7 @@ export const renderWelcome = (state, updateState) => {
                         <FadeInText style={styles.welcomeText} delay={4000}><ResizeText initial={20} final={30} delay={5000} duration={1000} >A</ResizeText><ResizeText initial={20} final={0} delay={5000} duration={1500}>ssistant</ResizeText></FadeInText>
                         <FadeInText style={styles.welcomeText} initial={0} final={1} duration={100} delay={7000}><ResizeText initial={20} final={30} delay={5000} duration={100}>!</ResizeText></FadeInText>
                     </View>
-                    <FadeInView delay={7000} duration={100}><Image style={{alignSelf: 'flex-end', height: 100, width: 100}} source={require('./Assets/AnimeDog.jpg')} /></FadeInView>
+                    <FadeInView style={{flexDirection: 'row', justifyContent: 'center'}} delay={7000} duration={100}><View style={{flex: 7}}></View><Image style={{flex: 6, alignSelf: 'center', height: 150, width: 110}} source={require('./Assets/EmmaMascot.png')} /></FadeInView>
                 </View>
             </TouchableHighlight>
         );
