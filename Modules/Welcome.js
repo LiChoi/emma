@@ -21,5 +21,3 @@ export const renderWelcome = (state, updateState) => {
         );
     }
 }
-
-//final, initial, delay, duration

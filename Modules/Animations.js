@@ -72,26 +72,3 @@ export const ResizeText = (props) => {
         </Animated.Text>
     );
 }
-
-
-
-/*
-Animated.sequence([
-  // decay, then spring to start and twirl
-  Animated.decay(position, {
-    // coast to a stop
-    velocity: {x: gestureState.vx, y: gestureState.vy}, // velocity from gesture release
-    deceleration: 0.997,
-  }),
-  Animated.parallel([
-    // after decay, in parallel:
-    Animated.spring(position, {
-      toValue: {x: 0, y: 0}, // return to start
-    }),
-    Animated.timing(twirl, {
-      // and twirl
-      toValue: 360,
-    }),
-  ]),
-]).start(); // start the sequence group
-*/
