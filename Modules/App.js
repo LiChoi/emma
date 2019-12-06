@@ -63,14 +63,13 @@ const compendiumSchema = {
   properties: {
     chemicalName: 'string',
     tradeNames: 'string[]',
-    strengths: 'float[]',
-    unit: 'string',
+    strengths: 'string[]',
     class: 'string',
     indications: 'string[]',
     interactionTags: 'Interaction[]',
     crossAllergies: 'string[]',
     contraindications: 'Contraindication[]',
-    doseRange: 'float[]'
+    doseRange: 'string'
   }
 };
 
@@ -87,7 +86,7 @@ const interactionTagSchema = {
   properties: {
     tag: 'string',
     tagType: 'string',
-    effect: 'string?',
+    effect: 'string',
     severity: 'string?'
   }
 };

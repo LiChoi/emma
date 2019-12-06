@@ -44,7 +44,7 @@ const CheckForAllergies = (allergies, medlist, compendium) => {
         allergies.forEach((allergy)=> {
             let allergyEntry = FindCompendiumEntry(allergy.name, compendium);
             if ( drugEntry && ( ( allergyEntry && drugEntry.chemicalName == allergyEntry.chemicalName) || drugEntry.class == allergy.name || (allergyEntry && drugEntry.class == allergyEntry.class) ) ){
-                allergiesFound.push(`Taking ${drug.tradeName} when allergic to ${allergy.name}. Potential cross-allergy: ${allergy.details}`);
+                allergiesFound.push(`Taking ${drug.tradeName} when allergic to ${allergy.name}. Potential cross-allergy. ${allergy.details}`);
             } 
         });
     });
@@ -104,12 +104,12 @@ const FindCompendiumEntry = (tradeName, compendium) => {
     return foundEntry;
 }
 
-const CalculateAge = (birthday) => {
+export const CalculateAge = (birthday) => {
     let now = new Date(Date.now());
     return now.getFullYear() - birthday.getFullYear(); 
 }
 
-const ReturnMatchedAgeRange = (range, age) => {
+export const ReturnMatchedAgeRange = (range, age) => {
     // Range: age=#, age<#, age<=#, age>#, age>=#, #<age<#, #<=age<#, etc 
     let expression = range.replace('age', age);
     let matchesRange = eval(expression);
