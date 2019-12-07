@@ -3,7 +3,7 @@ import { Text, TextInput, View, ScrollView } from 'react-native';
 import {BarButton, TextButton, NoMatchFound} from './Common';
 import {styles} from './Styles';
 import {handleEmail, composeEmail} from './Emailer';
-import {PrepareReport, CalculateAge, ReturnMatchedAgeRange} from './Analysis';
+import {PrepareReport, CalculateAge} from './Analysis';
 import {identifyInputBeforeSave} from './GenerateSuggestions';
 
 export const renderProfile = (state, updateState) => {
@@ -215,7 +215,7 @@ const generateHints = (state) => {
     {hint: `Hint: If you are breastfeeding, you can enter that as a condition`, context: 'female of child-bearing age', suggest: 'Breastfeeding'},
     {hint: `Hint: If you smoke, you can enter 'Smoking' as a condition.`, context: 'all', suggest: 'Smoking'},
     {hint: `Hint: If you drink a lot of alcohol, you can enter 'High alcohol intake' as a condition.`, context: 'all', suggest: 'High alcohol intake'},
-    {hint: `Hint: If you have poor kidney function, add 'crcl' (short for creatinine clearance) as a condition. In the details, input your crcl in ml/min (just the number - no units).`, context: 'all', suggest: 'crcl'}
+    {hint: `Hint: If you have poor kidney function, add 'Crcl' (short for creatinine clearance) as a condition. In the details, input your Crcl in ml/min (just the number - no units).`, context: 'all', suggest: 'Crcl'}
   ];
   let relevantHints = [];
   hints.forEach((hint)=>{
@@ -228,8 +228,7 @@ const generateHints = (state) => {
       break;
       case 'female of child-bearing age':
         let age = CalculateAge(state.realm.objects('User').filtered(`name='${patient}'`)[0].birthday);
-        let ageInRange = ReturnMatchedAgeRange('15<=age && age<=45', age);
-        if (conditionsObject.Sex == 'Female' && ageInRange && !conditionsObject.hasOwnProperty(hint.suggest)) { relevantHints.push(hint.hint); }
+        if (conditionsObject.Sex == 'Female' && 15<=age && age<=45 && !conditionsObject.hasOwnProperty(hint.suggest)) { relevantHints.push(hint.hint); }
       break;
     }
   });
