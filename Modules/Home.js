@@ -50,7 +50,6 @@ const clearPreviousProfileState = (state, updateState) => {
         return `render.${key}`;
     });
     let pathsToFalse = [...renderPaths, 'profileComponent.allergyField', 'profileComponent.conditionField', 'medlistComponent.tradeNameField'];
-    console.log(pathsToFalse);
     pathsToFalse.forEach((path)=>{
         updateState('by path and value', {path: path, value: null});
     });
