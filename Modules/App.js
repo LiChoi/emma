@@ -234,7 +234,6 @@ class App extends Component {
         notesField: null,
         imageLocationField: null
       },
-      tradeNameList: [],
       emmaAsksComponent: ["Emma can't think of any questions."]
     };
     this.updateState = this.updateState.bind(this);

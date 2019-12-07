@@ -67,11 +67,11 @@ const CheckForContraindications = (profile, compendium, medicalTerms) => {
         if (entry){
             entry.contraindications.forEach((CI)=>{
                 if (/age/.test(CI.tag) && /[<>=]/.test(CI.tag)) {
-                    let age = CalculateAge(profile.birthday); //the expression in eval will call variable 'age' 
+                    let age = CalculateAge(profile.birthday); //the expression in eval will call variable 'age', javascript can evaluate even if age is stored as string 
                     if (eval(CI.tag)) { contraindicationsFound.push(`Taking ${drug.tradeName} and ${CI.tag}. ${CI.details}`); }
                 } else if (/crcl/.test(CI.tag) && /[<>=]/.test(CI.tag)) { 
                     if (patientConditionsObject.hasOwnProperty('Crcl')) {
-                        let crcl = patientConditionsObject.Crcl.details; //the expression in eval will call variable crcl 
+                        let crcl = patientConditionsObject.Crcl.details; //the expression in eval will call variable crcl, javascript can evaluate even if crcl is stored as string  
                         if (eval(CI.tag)) { contraindicationsFound.push(`Taking ${drug.tradeName} while ${CI.tag}ml/min. ${CI.details}`); }
                     }
                 } else {

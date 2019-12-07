@@ -24,7 +24,7 @@ export const renderEmmaAsks = (state, updateState) => {
                 <BarButton title='Email your medical provider' onPress={()=>{ 
                     handleEmail(
                         {
-                            subject: "Questions about my medication therapy", //String
+                            subject: `Questions about ${state.profileComponent.currentProfile}'s medication therapy`, //String
                             recipients: [], //array of strings
                             ccRecipients: [], //array of strings
                             bccRecipients: [], //array of strings

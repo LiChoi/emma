@@ -14,7 +14,7 @@ export const renderProfile = (state, updateState) => {
                 <Text style={{textAlign: 'center'}}>{state.realm.objects('User').map((user, i)=>{if(user.name == state.profileComponent.currentProfile){return user.birthday.toDateString().slice(4);}})}</Text>
                 <BarButton title="Email Profile" onPress={()=>{handleEmail(
                     {
-                        subject: "Medical Profile", //String
+                        subject: `${state.profileComponent.currentProfile}'s Medical Profile`, //String
                         recipients: [], //array of strings
                         ccRecipients: [], //array of strings
                         bccRecipients: [], //array of strings

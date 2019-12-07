@@ -42,7 +42,7 @@ export class NoMatchFound extends Component {
                 <View style={{width: '100%'}}>
                     <Text style={{textAlign: 'justify'}}>Emma doesn't recognize this word. Please select from the list below or try another search term.</Text>
                     <BarButton title='Save what I entered.' onPress={()=>{ this.props.updateState('by path and value', {path: `render.${this.props.type}NoMatch`, value: false}); this.props.updateState('save', {what: this.props.type, whose: this.props.state.profileComponent.currentProfile, root: this.props.saveRoot, keys: [this.props.atKey]}); }} />
-                    {this.props.state.suggestedList.map((item)=>{
+                    {this.props.state[`suggested${this.props.atKey}List`].map((item)=>{  
                         return (
                             <TextButton 
                                 key={item} 

@@ -10,7 +10,7 @@ export const identifyInputBeforeSave = (data) => {
         if (!input) { data.updateState('by path and value', {path: 'message', value: 'Input cannot be empty.'}); } 
         else {
             data.updateState('by path and value', {path: `render.${data.ifMatchSaveToRealm}NoMatch`, value: true});
-            data.updateState('by path and value', {path: 'suggestedList', value: generateSuggestedList({input: input, list: list}) }); 
+            data.updateState('by path and value', {path: `suggested${data.atKey}List`, value: generateSuggestedList({input: input, list: list}) }); //Dynamically create this state property
         }
     }
 }
