@@ -28,7 +28,7 @@ export const loadProfiles = (state, updateState) => {
                                     key={"username "+i} 
                                     title={user.name} 
                                     onPress={()=>{
-                                        clearPreviousProfileState(state, updateState);
+                                        clearPreviousProfileState(updateState);
                                         updateState('by path and value', {path: 'screen', value: 'profile'}); updateState('by path and value', {path: 'profileComponent.currentProfile', value: user.name});
                                     }} 
                                 />
@@ -45,12 +45,31 @@ export const loadProfiles = (state, updateState) => {
     }
 }
 
-const clearPreviousProfileState = (state, updateState) => {
-    let renderPaths = Object.keys(state.render).map((key) => {
-        return `render.${key}`;
-    });
-    let pathsToFalse = [...renderPaths, 'profileComponent.allergyField', 'profileComponent.conditionField', 'medlistComponent.tradeNameField'];
-    pathsToFalse.forEach((path)=>{
-        updateState('by path and value', {path: path, value: null});
-    });
+const clearPreviousProfileState = (updateState) => {
+    let fullState = {
+        render: {editAllergyDetails: false, editConditionDetails: false, editMedication: false, deleteProfile: false}, 
+        createProfileComponent: {
+            name: null,
+            birthday: null
+        },
+        profileComponent: {
+            currentProfile: null,
+            allergyField: null,
+            allergyDetailsField: null,
+            conditionField: null,
+            conditionDetailsField: null
+        },
+        medlistComponent: {
+            tradeNameField: null,
+            chemicalNameField: null,
+            strengthField: null,
+            directionsField: null,
+            purposeField: null,
+            prescriberField: null,
+            notesField: null,
+            imageLocationField: null
+        },
+        emmaAsksComponent: ["Emma can't think of any questions."]
+    };
+    updateState('by setState', fullState);
 }

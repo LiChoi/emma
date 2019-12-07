@@ -252,20 +252,20 @@ class App extends Component {
     switch(instruction) {
       case 'save':
         saveToRealm(this.state, this.updateState, this.updateRealm, data);
-        break;
+      break;
       case 'load medication fields':
         let keys = Object.keys(data);
         keys.forEach((field)=>{
           this.updateState('by path and value', {path: `medlistComponent.${field}Field`, value: data[field] });
         });
-        break;
+      break;
       case 'delete':
         this.updateRealm('delete', data);
         if (data.what == 'profile'){
           this.updateState('by path and value', {path: 'render.deleteProfile', value: false});
           this.setState({screen: 'home'});
         }
-        break;
+      break;
       case 'by path and value':
         let path = data.path.split(".");
         let root = path.shift();
@@ -274,7 +274,10 @@ class App extends Component {
           let rootProp = prevState[root] ? JSON.parse(JSON.stringify(prevState[root])) : null;
           return { [root]: rootProp ? changeObjectByPath(rootProp, path, value) : value };                                
         });
-        break;
+      break;
+      case 'by setState':
+        this.setState(data);
+      break;
     }
   }
 
