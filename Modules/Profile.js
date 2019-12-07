@@ -202,33 +202,34 @@ const renderEditConditionDetails = (state, updateState, condition) => {
     }
 }
 
-
 const generateHints = (state) => {
   let patient = state.profileComponent.currentProfile;
-  let conditions = state.realm.objects('User').filtered(`name='${patient}'`)[0].conditions.map((condition)=>{
-    return condition.name;
-  })
+  let conditionsObject = {};
+  state.realm.objects('User').filtered(`name='${patient}'`)[0].conditions.forEach((condition)=>{
+    conditionsObject[condition.name] = condition.details;
+  });
   let hints = [
-    {hint: `Hint: Add "Sex" as a condition, then input "Male" or "Female" in the details.`, context: 'no sex added'},
+    {hint: `Hint: Add "Sex" as a condition, then input "Male" or "Female" in the details.`, context: 'no sex added', suggest: 'Sex'},
+    {hint: `Hint: Add 'Weight' as a condition, then in the details input your weight in the format #kg or #lbs (no spaces).`, context: 'all', suggest: 'Weight'},
     {hint: `Hint: If you are pregnant, you can enter that as a condition.`, context: 'female of child-bearing age', suggest: 'Pregnant'},
     {hint: `Hint: If you are breastfeeding, you can enter that as a condition`, context: 'female of child-bearing age', suggest: 'Breastfeeding'},
     {hint: `Hint: If you smoke, you can enter 'Smoking' as a condition.`, context: 'all', suggest: 'Smoking'},
     {hint: `Hint: If you drink a lot of alcohol, you can enter 'High alcohol intake' as a condition.`, context: 'all', suggest: 'High alcohol intake'},
-    {hint: `Hint: If you have poor kidney function, you can enter the creatinine clearance as a condition. Add 'crcl=#ml/min' with the correct #.`, context: 'all', suggest: 'crcl'}
+    {hint: `Hint: If you have poor kidney function, add 'crcl' (short for creatinine clearance) as a condition. In the details, input your crcl in ml/min (just the number - no units).`, context: 'all', suggest: 'crcl'}
   ];
   let relevantHints = [];
   hints.forEach((hint)=>{
     switch(hint.context){
       case 'all':
-        if (conditions.indexOf(hint.suggest) == -1) {relevantHints.push(hint.hint);}
+        if (!conditionsObject.hasOwnProperty(hint.suggest)) {relevantHints.push(hint.hint);}
       break;
       case 'no sex added':
-        if (conditions.indexOf('Sex') == -1) { relevantHints.push(hint.hint); }
+        if (!conditionsObject.hasOwnProperty('Sex')) { relevantHints.push(hint.hint); }
       break;
       case 'female of child-bearing age':
         let age = CalculateAge(state.realm.objects('User').filtered(`name='${patient}'`)[0].birthday);
         let ageInRange = ReturnMatchedAgeRange('15<=age && age<=45', age);
-        if (ageInRange && conditions.indexOf(hint.suggest) == -1 ) { relevantHints.push(hint.hint); }
+        if (conditionsObject.Sex == 'Female' && ageInRange && !conditionsObject.hasOwnProperty(hint.suggest)) { relevantHints.push(hint.hint); }
       break;
     }
   });
