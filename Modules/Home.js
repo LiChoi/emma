@@ -24,7 +24,14 @@ export const loadProfiles = (state, updateState) => {
                     {
                         users.map((user, i)=>{
                             return(
-                                <BarButton key={"username "+i} title={user.name} onPress={()=>{updateState('by path and value', {path: 'screen', value: 'profile'}); updateState('by path and value', {path: 'profileComponent.currentProfile', value: user.name})}} />
+                                <BarButton 
+                                    key={"username "+i} 
+                                    title={user.name} 
+                                    onPress={()=>{
+                                        clearPreviousProfileState(state, updateState);
+                                        updateState('by path and value', {path: 'screen', value: 'profile'}); updateState('by path and value', {path: 'profileComponent.currentProfile', value: user.name});
+                                    }} 
+                                />
                             );
                         })
                     }
@@ -36,4 +43,15 @@ export const loadProfiles = (state, updateState) => {
             <Text>Loading...</Text>
         );
     }
+}
+
+const clearPreviousProfileState = (state, updateState) => {
+    let renderPaths = Object.keys(state.render).map((key) => {
+        return `render.${key}`;
+    });
+    let pathsToFalse = [...renderPaths, 'profileComponent.allergyField', 'profileComponent.conditionField', 'medlistComponent.tradeNameField'];
+    console.log(pathsToFalse);
+    pathsToFalse.forEach((path)=>{
+        updateState('by path and value', {path: path, value: null});
+    });
 }

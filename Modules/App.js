@@ -63,14 +63,13 @@ const compendiumSchema = {
   properties: {
     chemicalName: 'string',
     tradeNames: 'string[]',
-    strengths: 'float[]',
-    unit: 'string',
+    strengths: 'string[]',
     class: 'string',
     indications: 'string[]',
     interactionTags: 'Interaction[]',
     crossAllergies: 'string[]',
     contraindications: 'Contraindication[]',
-    doseRange: 'float[]'
+    doseRange: 'string'
   }
 };
 
@@ -87,7 +86,7 @@ const interactionTagSchema = {
   properties: {
     tag: 'string',
     tagType: 'string',
-    effect: 'string?',
+    effect: 'string',
     severity: 'string?'
   }
 };
@@ -235,7 +234,6 @@ class App extends Component {
         notesField: null,
         imageLocationField: null
       },
-      tradeNameList: [],
       emmaAsksComponent: ["Emma can't think of any questions."]
     };
     this.updateState = this.updateState.bind(this);

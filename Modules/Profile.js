@@ -1,9 +1,9 @@
 import React from 'react';
-import { Text, TextInput, View } from 'react-native';
+import { Text, TextInput, View, ScrollView } from 'react-native';
 import {BarButton, TextButton, NoMatchFound} from './Common';
 import {styles} from './Styles';
 import {handleEmail, composeEmail} from './Emailer';
-import {PrepareReport} from './Analysis';
+import {PrepareReport, CalculateAge} from './Analysis';
 import {identifyInputBeforeSave} from './GenerateSuggestions';
 
 export const renderProfile = (state, updateState) => {
@@ -14,7 +14,7 @@ export const renderProfile = (state, updateState) => {
                 <Text style={{textAlign: 'center'}}>{state.realm.objects('User').map((user, i)=>{if(user.name == state.profileComponent.currentProfile){return user.birthday.toDateString().slice(4);}})}</Text>
                 <BarButton title="Email Profile" onPress={()=>{handleEmail(
                     {
-                        subject: "Medical Profile", //String
+                        subject: `${state.profileComponent.currentProfile}'s Medical Profile`, //String
                         recipients: [], //array of strings
                         ccRecipients: [], //array of strings
                         bccRecipients: [], //array of strings
@@ -76,6 +76,13 @@ const renderAddCondition = (state, updateState) => {
     if (!state.render.editConditionDetails){
         return (
             <View style={{alignItems: 'center'}}>
+                <ScrollView style={{}} horizontal={true}>
+                  {
+                    generateHints(state).map((hint, i)=>{ 
+                      return ( <Text style={{color: 'grey', padding: 10}} key={`hint ${i}`}>{'\n' + hint + '\n'}</Text> ); 
+                    })
+                  }
+                </ScrollView>
                 <TextInput 
                     style={styles.textInput}
                     placeholder='Enter new condition'
@@ -193,4 +200,37 @@ const renderEditConditionDetails = (state, updateState, condition) => {
         </View>
       );
     }
+}
+
+const generateHints = (state) => {
+  let patient = state.profileComponent.currentProfile;
+  let conditionsObject = {};
+  state.realm.objects('User').filtered(`name='${patient}'`)[0].conditions.forEach((condition)=>{
+    conditionsObject[condition.name] = condition.details;
+  });
+  let hints = [
+    {hint: `Hint: Add "Sex" as a condition, then input "Male" or "Female" in the details.`, context: 'no sex added', suggest: 'Sex'},
+    {hint: `Hint: Add 'Weight' as a condition, then in the details input your weight in the format #kg or #lbs (no spaces).`, context: 'all', suggest: 'Weight'},
+    {hint: `Hint: If you are pregnant, you can enter that as a condition.`, context: 'female of child-bearing age', suggest: 'Pregnant'},
+    {hint: `Hint: If you are breastfeeding, you can enter that as a condition`, context: 'female of child-bearing age', suggest: 'Breastfeeding'},
+    {hint: `Hint: If you smoke, you can enter 'Smoking' as a condition.`, context: 'all', suggest: 'Smoking'},
+    {hint: `Hint: If you drink a lot of alcohol, you can enter 'High alcohol intake' as a condition.`, context: 'all', suggest: 'High alcohol intake'},
+    {hint: `Hint: If you have poor kidney function, add 'Crcl' (short for creatinine clearance) as a condition. In the details, input your Crcl in ml/min (just the number - no units).`, context: 'all', suggest: 'Crcl'}
+  ];
+  let relevantHints = [];
+  hints.forEach((hint)=>{
+    switch(hint.context){
+      case 'all':
+        if (!conditionsObject.hasOwnProperty(hint.suggest)) {relevantHints.push(hint.hint);}
+      break;
+      case 'no sex added':
+        if (!conditionsObject.hasOwnProperty('Sex')) { relevantHints.push(hint.hint); }
+      break;
+      case 'female of child-bearing age':
+        let age = CalculateAge(state.realm.objects('User').filtered(`name='${patient}'`)[0].birthday);
+        if (conditionsObject.Sex == 'Female' && 15<=age && age<=45 && !conditionsObject.hasOwnProperty(hint.suggest)) { relevantHints.push(hint.hint); }
+      break;
+    }
+  });
+  return relevantHints; 
 }

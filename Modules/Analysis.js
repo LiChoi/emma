@@ -44,7 +44,7 @@ const CheckForAllergies = (allergies, medlist, compendium) => {
         allergies.forEach((allergy)=> {
             let allergyEntry = FindCompendiumEntry(allergy.name, compendium);
             if ( drugEntry && ( ( allergyEntry && drugEntry.chemicalName == allergyEntry.chemicalName) || drugEntry.class == allergy.name || (allergyEntry && drugEntry.class == allergyEntry.class) ) ){
-                allergiesFound.push(`Taking ${drug.tradeName} when allergic to ${allergy.name}. Potential cross-allergy: ${allergy.details}`);
+                allergiesFound.push(`Taking ${drug.tradeName} when allergic to ${allergy.name}. Potential cross-allergy. ${allergy.details}`);
             } 
         });
     });
@@ -52,30 +52,31 @@ const CheckForAllergies = (allergies, medlist, compendium) => {
 }
 
 const CheckForContraindications = (profile, compendium, medicalTerms) => {
-    //Map profile conditions to primary medical terms, then check each drug's contraindications to find any matches  
-    let originalConditionTerms = [...profile.conditions]; 
-    let ageRanges = medicalTerms.filtered(`primaryTerm='age'`)[0].relatedTerms;
-    let conditions = profile.conditions.map((condition)=>{
-        let matchedTerm = false;
+    let patientConditionsObject = {};
+    profile.conditions.forEach((condition)=>{
+        let matchedTerm = condition.name;
         for(let i = 0; i < medicalTerms.length; i++){
             if ( medicalTerms[i].relatedTerms.indexOf(condition.name) !== -1 ) { matchedTerm = medicalTerms[i].primaryTerm; }
-            if (matchedTerm){ i = medicalTerms.length; }
+            if (matchedTerm !== condition.name){ i = medicalTerms.length; }
         }
-        return matchedTerm ? matchedTerm : condition.name ; //If no match found, return condition as is. It'll simply be ignored in next step
-    });
-    ageRanges.forEach((range)=>{
-        let matchedRange = ReturnMatchedAgeRange(range, CalculateAge(profile.birthday));
-        if (matchedRange) { conditions.push(range); originalConditionTerms.push({name: range, details: ""}); } //necessary to add also to originalConditionTerms as array lengths and position of items must match
+        patientConditionsObject[matchedTerm] = { originalTerm: condition.name, details: condition.details }
     });
     let contraindicationsFound = [];
     profile.medlist.forEach((drug)=>{
         let entry = FindCompendiumEntry(drug.tradeName, compendium); 
         if (entry){
             entry.contraindications.forEach((CI)=>{
-                let matchLocation = conditions.indexOf(CI.tag);
-                if (matchLocation !== -1){
-                    contraindicationsFound.push(`Taking ${drug.tradeName} with condition of ${originalConditionTerms[matchLocation].name}. ${CI.details}`); //Profile.conditions because want to use same terminology that patint inputted, rather than the primary term
-                } 
+                if (/age/.test(CI.tag) && /[<>=]/.test(CI.tag)) {
+                    let age = CalculateAge(profile.birthday); //the expression in eval will call variable 'age', javascript can evaluate even if age is stored as string 
+                    if (eval(CI.tag)) { contraindicationsFound.push(`Taking ${drug.tradeName} and ${CI.tag}. ${CI.details}`); }
+                } else if (/crcl/.test(CI.tag) && /[<>=]/.test(CI.tag)) { 
+                    if (patientConditionsObject.hasOwnProperty('Crcl')) {
+                        let crcl = patientConditionsObject.Crcl.details; //the expression in eval will call variable crcl, javascript can evaluate even if crcl is stored as string  
+                        if (eval(CI.tag)) { contraindicationsFound.push(`Taking ${drug.tradeName} while ${CI.tag}ml/min. ${CI.details}`); }
+                    }
+                } else {
+                    if (patientConditionsObject.hasOwnProperty(CI.tag)){ contraindicationsFound.push(`Taking ${drug.tradeName} with condition of ${patientConditionsObject[CI.tag].originalTerm}. ${CI.details}`); }
+                }
             });
         }
     });
@@ -104,14 +105,7 @@ const FindCompendiumEntry = (tradeName, compendium) => {
     return foundEntry;
 }
 
-const CalculateAge = (birthday) => {
+export const CalculateAge = (birthday) => {
     let now = new Date(Date.now());
     return now.getFullYear() - birthday.getFullYear(); 
-}
-
-const ReturnMatchedAgeRange = (range, age) => {
-    // Range: age=#, age<#, age<=#, age>#, age>=#, #<age<#, #<=age<#, etc 
-    let expression = range.replace('age', age);
-    let matchesRange = eval(expression);
-    return matchesRange ? range : false;
 }

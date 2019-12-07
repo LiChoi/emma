@@ -48,7 +48,7 @@ export const FadeInText = (props) => {
         </Animated.Text>
     );
 }
-//final, initial, delay, duration
+
 export const ResizeText = (props) => {
     const [fontSize] = useState(new Animated.Value(props.initial))  
     useEffect(() => {
