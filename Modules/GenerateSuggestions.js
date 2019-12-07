@@ -24,7 +24,8 @@ export const getList = (data) => {
             else { list = [...list, ...item[key]]; } 
         });
     });
-    return list;
+    let noDuplicatesList = [...new Set(list)];
+    return noDuplicatesList;
 } 
 
 //If no match found, use this to generate suggestions
