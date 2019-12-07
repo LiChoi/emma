@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, TextInput, View } from 'react-native';
+import { Text, TextInput, View, ScrollView } from 'react-native';
 import {BarButton, TextButton, NoMatchFound} from './Common';
 import {styles} from './Styles';
 import {handleEmail, composeEmail} from './Emailer';
@@ -76,6 +76,13 @@ const renderAddCondition = (state, updateState) => {
     if (!state.render.editConditionDetails){
         return (
             <View style={{alignItems: 'center'}}>
+                <ScrollView style={{}} horizontal={true}>
+                  {
+                    generateHints(state).map((hint, i)=>{ 
+                      return ( <Text style={{color: 'grey', padding: 10}} key={`hint ${i}`}>{'\n' + hint + '\n'}</Text> ); 
+                    })
+                  }
+                </ScrollView>
                 <TextInput 
                     style={styles.textInput}
                     placeholder='Enter new condition'
@@ -202,11 +209,11 @@ const generateHints = (state) => {
     return condition.name;
   })
   let hints = [
-    {hint: `Hint: You can enter your sex as a condition. Add "Sex" as a condition, then add "Male" or "Female" in the details.`, context: 'no sex added'},
+    {hint: `Hint: Add "Sex" as a condition, then input "Male" or "Female" in the details.`, context: 'no sex added'},
     {hint: `Hint: If you are pregnant, you can enter that as a condition.`, context: 'female of child-bearing age', suggest: 'Pregnant'},
     {hint: `Hint: If you are breastfeeding, you can enter that as a condition`, context: 'female of child-bearing age', suggest: 'Breastfeeding'},
-    {hint: `Hint: If you smoke, you can enter that as a condition. Add 'Smoking'.`, context: 'all', suggest: 'Smoking'},
-    {hint: `Hint: If you suffer from Alcohol abuse, you can enter that as a condition. Add 'High alcohol intake'.`, context: 'all', suggest: 'High alcohol intake'},
+    {hint: `Hint: If you smoke, you can enter 'Smoking' as a condition.`, context: 'all', suggest: 'Smoking'},
+    {hint: `Hint: If you drink a lot of alcohol, you can enter 'High alcohol intake' as a condition.`, context: 'all', suggest: 'High alcohol intake'},
     {hint: `Hint: If you have poor kidney function, you can enter the creatinine clearance as a condition. Add 'crcl=#ml/min' with the correct #.`, context: 'all', suggest: 'crcl'}
   ];
   let relevantHints = [];
@@ -220,7 +227,7 @@ const generateHints = (state) => {
       break;
       case 'female of child-bearing age':
         let age = CalculateAge(state.realm.objects('User').filtered(`name='${patient}'`)[0].birthday);
-        let ageInRange = ReturnMatchedAgeRange('15<=age<=45', age);
+        let ageInRange = ReturnMatchedAgeRange('15<=age && age<=45', age);
         if (ageInRange && conditions.indexOf(hint.suggest) == -1 ) { relevantHints.push(hint.hint); }
       break;
     }
