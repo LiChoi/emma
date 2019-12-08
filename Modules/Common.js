@@ -1,9 +1,23 @@
 import React, { Component } from 'react';
 import { Text, View, TouchableHighlight } from 'react-native';
 import {fadedDarkMedicalGreen, styles} from './Styles';
+import { LoadingSpin } from './Animations';
 
 export const renderMessage = (state, updateState) => {
-    if (state.message){
+    if (state.message == 'Emma is learning...') {
+        return (
+            <View style={styles.messageScreenCover}>
+                <View style={{height: 100}}></View>
+                <View style={{height: 100}}></View>
+                <View style={styles.messageContainer}>
+                    <Text style={styles.messageText}>{state.message}</Text>
+                </View>
+                <LoadingSpin />
+                <View style={{height: 100}}></View>
+                <View style={{height: 100}}></View>
+            </View>
+        );
+    } else if (state.message){
         return (
             <View style={styles.messageScreenCover}>
                 <View></View>

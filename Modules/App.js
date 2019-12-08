@@ -185,6 +185,7 @@ const saveToRealm = async (state, updateState, updateRealm, data) => {
 
 //HTTP functions
 const updateCompendium = (data) => {
+  data.updateState('by path and value', {path: 'message', value: "Emma is learning..."});
   fetch('https://emma-server.glitch.me').then(async (response) => {
     if(response.ok && /json/i.test(response.headers.map['content-type'])) { 
       let responseJson = await response.json();

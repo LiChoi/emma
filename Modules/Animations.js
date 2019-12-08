@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Animated } from 'react-native';
+import React, { useState, useEffect, Component } from 'react';
+import { Animated, View, Easing } from 'react-native';
 
 export const FadeInView = (props) => {
     const [fadeAnim] = useState(new Animated.Value(props.initial ? props.initial : 0))  
@@ -71,4 +71,38 @@ export const ResizeText = (props) => {
             {props.children}
         </Animated.Text>
     );
+}
+
+export class LoadingSpin extends Component {
+    constructor(props) {
+      super(props);
+      this.state = { spinAnim: new Animated.Value(0) }
+    }
+  
+    componentDidMount(){
+        Animated.loop(Animated.timing(
+            this.state.spinAnim,
+            {
+                toValue: 1,
+                duration: 3000,
+                easing: Easing.linear,
+                useNativeDriver: true
+            }
+        )).start();
+    }
+  
+    render() {
+        const spin = this.state.spinAnim.interpolate({
+            inputRange: [0, 1],
+            outputRange: ['0deg', '360deg']
+        });
+        return (
+            <View style={{ flex: 1, justifyContent:'center', alignItems:'center'}}>
+                <Animated.Image
+                    style={{height:100, width: 100,transform: [{rotate: spin}] }}
+                    source={require('./Assets/Pilly.png')} 
+                />
+            </View>
+        );
+    }
 }
