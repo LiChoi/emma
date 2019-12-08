@@ -4,6 +4,10 @@ import {fadedDarkMedicalGreen, styles} from './Styles';
 import { LoadingSpin } from './Animations';
 
 export const renderMessage = (state, updateState) => {
+    const ButtonText = (message) => {
+        if (message == "Emma's done learning."){ return "Good job, Emma!"; }
+        else { return "Close"; }
+    }
     if (state.message == 'Emma is learning...') {
         return (
             <View style={styles.messageScreenCover}>
@@ -23,7 +27,7 @@ export const renderMessage = (state, updateState) => {
                 <View></View>
                 <View style={styles.messageContainer}>
                     <Text style={styles.messageText}>{state.message}</Text>
-                    <BarButton title="Close" onPress={()=>{updateState('by path and value', {path: 'message', value: null})}} />
+                    <BarButton title={ButtonText(state.message)} onPress={()=>{updateState('by path and value', {path: 'message', value: null})}} />
                 </View>
                 <View></View>
                 <View></View>

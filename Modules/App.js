@@ -198,7 +198,7 @@ const updateCompendium = (data) => {
       Object.getOwnPropertyNames(Conditions).forEach(key=>{
         data.updateRealm('direct save', {schema: 'Medical Terms', instance: Conditions[key], rewrite: data.state.realm.objects('Medical Terms').filtered(`primaryTerm='${Conditions[key].primaryTerm}'`).length > 0 ? true : false });
       });
-      data.updateState('by path and value', {path: 'message', value: "Emma's knowledge has been updated."});
+      data.updateState('by path and value', {path: 'message', value: "Emma's done learning."});
     } else {
       data.updateState('by path and value', {path: 'message', value: 'Emma failed to connect with server. Try again later.'});
     }
