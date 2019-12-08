@@ -69,7 +69,8 @@ const compendiumSchema = {
     interactionTags: 'Interaction[]',
     crossAllergies: 'string[]',
     contraindications: 'Contraindication[]',
-    doseRange: 'string'
+    doseRange: 'string',
+    tags: 'string[]'
   }
 };
 
