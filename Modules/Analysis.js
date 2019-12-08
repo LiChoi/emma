@@ -24,7 +24,6 @@ const CheckForInteractions = (medlist, compendium) => {
             //For each pair, loop across the first drug's interaction tags
             drug.interactionTags.forEach((tag)=>{
                 //If a tag matches the drug being checked, then push the relevant information into the DTP (drug-therapy-problem) array
-                //if ( tag.tag == drugs[i].class || tag.tag == drugs[i].chemicalName ) {
                 if ( tag.tag == drugs[i].class || tag.tag == drugs[i].chemicalName || drugs[i].tags.indexOf(tag.tag) !== -1 ) {
                     DTPs.push(`Taking ${drug.tradeName} and ${drugs[i].tradeName} together. ${tag.effect}`);
                 }
