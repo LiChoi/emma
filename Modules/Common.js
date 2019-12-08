@@ -11,14 +11,13 @@ export const renderMessage = (state, updateState) => {
     if (state.message == 'Emma is learning...') {
         return (
             <View style={styles.messageScreenCover}>
-                <View style={{height: 100}}></View>
-                <View style={{height: 100}}></View>
+                <View style={{flex: 1}}></View>
                 <View style={styles.messageContainer}>
                     <Text style={styles.messageText}>{state.message}</Text>
                 </View>
-                <LoadingSpin />
-                <View style={{height: 100}}></View>
-                <View style={{height: 100}}></View>
+                <View style={{flex: 2}}>
+                    <LoadingSpin style={{alignItems: 'center'}} />
+                </View>
             </View>
         );
     } else if (state.message){

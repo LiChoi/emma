@@ -97,7 +97,7 @@ export class LoadingSpin extends Component {
             outputRange: ['0deg', '360deg']
         });
         return (
-            <View style={{ flex: 1, justifyContent:'center', alignItems:'center'}}>
+            <View style={{ ...this.props.style}}>
                 <Animated.Image
                     style={{height:100, width: 100,transform: [{rotate: spin}] }}
                     source={require('./Assets/Pilly.png')} 
