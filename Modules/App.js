@@ -185,23 +185,22 @@ const saveToRealm = async (state, updateState, updateRealm, data) => {
 
 //HTTP functions
 const updateCompendium = (data) => {
-  fetch('https://emma-server.glitch.me').then((response) => response.json()).then((responseJson) => {
+  fetch('https://emma-server.glitch.me').then(async (response) => {
+    if(response.ok && /json/i.test(response.headers.map['content-type'])) { 
+      let responseJson = await response.json();
       console.log(responseJson);
-      Object.getOwnPropertyNames(responseJson).forEach(key=>{
-        data.updateRealm('direct save', {schema: 'Compendium', instance: responseJson[key], rewrite: data.state.realm.objects('Compendium').filtered(`chemicalName='${responseJson[key].chemicalName}'`).length > 0 ? true : false });
-      })
-      responseJson ? data.updateState('by path and value', {path: 'message', value: "Emma's knowledge has been updated."}) : null; 
-  }).catch((error) => {
-      console.error(error);
-  });
-  fetch('https://emma-server.glitch.me/conditions').then((response) => response.json()).then((responseJson) => {
-      console.log(responseJson);
-      Object.getOwnPropertyNames(responseJson).forEach(key=>{
-        data.updateRealm('direct save', {schema: 'Medical Terms', instance: responseJson[key], rewrite: data.state.realm.objects('Medical Terms').filtered(`primaryTerm='${responseJson[key].primaryTerm}'`).length > 0 ? true : false });
-      })
-      responseJson ? data.updateState('by path and value', {path: 'message', value: "Emma's knowledge has been updated."}) : null; 
-  }).catch((error) => {
-      console.error(error);
+      let Compendium = responseJson.Compendium;
+      let Conditions = responseJson.Conditions;
+      Object.getOwnPropertyNames(Compendium).forEach(key=>{
+        data.updateRealm('direct save', {schema: 'Compendium', instance: Compendium[key], rewrite: data.state.realm.objects('Compendium').filtered(`chemicalName='${Compendium[key].chemicalName}'`).length > 0 ? true : false });
+      });
+      Object.getOwnPropertyNames(Conditions).forEach(key=>{
+        data.updateRealm('direct save', {schema: 'Medical Terms', instance: Conditions[key], rewrite: data.state.realm.objects('Medical Terms').filtered(`primaryTerm='${Conditions[key].primaryTerm}'`).length > 0 ? true : false });
+      });
+      data.updateState('by path and value', {path: 'message', value: "Emma's knowledge has been updated."});
+    } else {
+      data.updateState('by path and value', {path: 'message', value: 'Emma failed to connect with server. Try again later.'});
+    }
   });
 }
 //End of HTTP-functions
