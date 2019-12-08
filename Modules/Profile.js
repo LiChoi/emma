@@ -209,13 +209,15 @@ const generateHints = (state) => {
     conditionsObject[condition.name] = condition.details;
   });
   let hints = [
+    {hint: `Hint: Wondering if food interacts with your medication? Enter 'Food' as a condition. Emma might have the answer!`, context: 'all', suggest: 'Food'},
+    {hint: `Hint: Can you take that with alcohol? Enter 'Alcohol' as a condition and see if Emma knows!`, context: 'all', suggest: 'Alcohol'},
     {hint: `Hint: Add "Sex" as a condition, then input "Male" or "Female" in the details.`, context: 'no sex added', suggest: 'Sex'},
-    {hint: `Hint: Add 'Weight' as a condition, then in the details input your weight in the format #kg or #lbs (no spaces).`, context: 'all', suggest: 'Weight'},
     {hint: `Hint: If you are pregnant, you can enter that as a condition.`, context: 'female of child-bearing age', suggest: 'Pregnant'},
     {hint: `Hint: If you are breastfeeding, you can enter that as a condition`, context: 'female of child-bearing age', suggest: 'Breastfeeding'},
-    {hint: `Hint: If you smoke, you can enter 'Smoking' as a condition.`, context: 'all', suggest: 'Smoking'},
-    {hint: `Hint: If you drink a lot of alcohol, you can enter 'High alcohol intake' as a condition.`, context: 'all', suggest: 'High alcohol intake'},
-    {hint: `Hint: If you have poor kidney function, add 'Crcl' (short for creatinine clearance) as a condition. In the details, input your Crcl in ml/min (just the number - no units).`, context: 'all', suggest: 'Crcl'}
+    {hint: `Hint: Smoking can affect your medication. Enter 'Smoking' as a condition if you smoke.`, context: 'all', suggest: 'Smoking'},
+    {hint: `Hint: For those who drink a lot, you can enter 'High alcohol intake' as a condition.`, context: 'all', suggest: 'High alcohol intake'},
+    {hint: `Hint: If you have poor kidney function, add 'Crcl' (short for creatinine clearance) as a condition. In the details, input your Crcl in ml/min (just the number - no units).`, context: 'all', suggest: 'Crcl'},
+    {hint: `Hint: Add 'Weight' as a condition, then in the details input your weight in the format #kg or #lbs (no spaces).`, context: 'all', suggest: 'Weight'}
   ];
   let relevantHints = [];
   hints.forEach((hint)=>{
