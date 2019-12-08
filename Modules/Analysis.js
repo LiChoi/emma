@@ -14,7 +14,7 @@ const CheckForInteractions = (medlist, compendium) => {
     medlist.forEach((drug)=>{
         let foundMatch = FindCompendiumEntry(drug.tradeName, compendium);
         if (foundMatch) { foundMatch.tradeName = drug.tradeName; drugs.unshift(foundMatch); } //Move indentified drugs to front of array and unindentified to end to ensure known drugs get checked first. If check unidentitied drugs first, there will be no interactionTags, thus won't identify DI's, and if interaction exists with drug at end of array, that drug won't be checked against earlier drugs in array.
-        else { foundMatch = {tradeName: drug.tradeName, chemicalName: drug.tradeName, class: "I don't know", interactionTags: ["Unknown"]}; drugs.push(foundMatch); } //If no corresponding entry, create an entry with dummy values and assume chemicalName=tradeName
+        else { foundMatch = {tradeName: drug.tradeName, chemicalName: drug.tradeName, class: "I don't know", interactionTags: ["Unknown"], tags: ['Unknown']}; drugs.push(foundMatch); } //If no corresponding entry, create an entry with dummy values and assume chemicalName=tradeName
     });
     let DTPs = [];
     //Iterate over array of matching drug entries 
@@ -43,7 +43,26 @@ const CheckForAllergies = (allergies, medlist, compendium) => {
         let drugEntry = FindCompendiumEntry(drug.tradeName, compendium);
         allergies.forEach((allergy)=> {
             let allergyEntry = FindCompendiumEntry(allergy.name, compendium);
-            if ( drugEntry && ( ( allergyEntry && drugEntry.chemicalName == allergyEntry.chemicalName) || drugEntry.class == allergy.name || (allergyEntry && drugEntry.class == allergyEntry.class) ) ){
+            if ( 
+                (
+                    drugEntry && 
+                    ( 
+                        ( allergyEntry && drugEntry.chemicalName == allergyEntry.chemicalName) || 
+                        drugEntry.class == allergy.name || 
+                        drugEntry.tags.indexOf(allergy.name) !== -1 || 
+                        (allergyEntry && drugEntry.tags.indexOf(allergyEntry.chemicalName) !== -1 ) || 
+                        (allergyEntry && drugEntry.class == allergyEntry.class) ||
+                        (allergyEntry && drugEntry.tags.indexOf(allergyEntry.class) !== -1 ) ||
+                        drugEntry.crossAllergies.indexOf(allergy.name) !== -1 ||
+                        (allergyEntry && drugEntry.crossAllergies.indexOf(allergyEntry.chemicalName) !== -1) ||
+                        (allergyEntry && drugEntry.crossAllergies.indexOf(allergyEntry.class) !== -1)
+                    )
+                ) || 
+                (
+                    allergyEntry && ( [allergyEntry.chemicalName, ...allergyEntry.tradeNames, allergyEntry.class, ...allergyEntry.crossAllergies, ...allergyEntry.tags].indexOf(drug.tradeName) !== -1 )
+                ) ||
+                ( drug.tradeName == allergy.name )
+            ){
                 allergiesFound.push(`Taking ${drug.tradeName} when allergic to ${allergy.name}. Potential cross-allergy. ${allergy.details}`);
             } 
         });
