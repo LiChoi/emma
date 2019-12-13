@@ -1,12 +1,12 @@
 import React from 'react';
 import { View, TouchableHighlight, Image, Text } from 'react-native';
 import {FadeInText, ResizeText, FadeInView} from './Animations';
-import {styles} from './Styles';
+import {styles, lightMedicalGreen} from './Styles';
 
 export const renderWelcome = (state, updateState) => {
     if (state.screen == 'welcome'){
         return (
-            <TouchableHighlight style={styles.welcomeScreen} onPress={()=>{updateState('by path and value', {path: 'screen', value: 'home'})}}>
+            <TouchableHighlight underlayColor={lightMedicalGreen} style={styles.welcomeScreen} onPress={()=>{updateState('by path and value', {path: 'screen', value: 'home'})}}>
                 <View>
                     <View style={{flexDirection: 'row', flexWrap: 'wrap'}}>
                         <FadeInText style={styles.welcomeText} delay={1000}><ResizeText initial={20} final={30} delay={5000} duration={1000}>E</ResizeText><ResizeText initial={20} final={0} delay={5000} duration={1500}>lectronic </ResizeText></FadeInText>
