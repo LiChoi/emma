@@ -55,7 +55,10 @@ const CheckForAllergies = (allergies, medlist, compendium) => {
                         (allergyEntry && drugEntry.tags.indexOf(allergyEntry.class) !== -1 ) ||
                         drugEntry.crossAllergies.indexOf(allergy.name) !== -1 ||
                         (allergyEntry && drugEntry.crossAllergies.indexOf(allergyEntry.chemicalName) !== -1) ||
-                        (allergyEntry && drugEntry.crossAllergies.indexOf(allergyEntry.class) !== -1)
+                        (allergyEntry && drugEntry.crossAllergies.indexOf(allergyEntry.class) !== -1) ||
+                        (
+                            allergyEntry && ( [allergyEntry.chemicalName, ...allergyEntry.tradeNames, allergyEntry.class, ...allergyEntry.crossAllergies, ...allergyEntry.tags].indexOf(drugEntry.class) !== -1 )
+                        ) 
                     )
                 ) || 
                 (
