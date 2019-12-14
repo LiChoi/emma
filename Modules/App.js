@@ -7,7 +7,7 @@ import {renderHome} from './Home.js';
 import {createProfile} from './CreateProfile.js';
 import {renderProfile} from './Profile';
 import {renderMedlist} from './Medlist';
-import { renderTakePicture, deletePreviousImage, purgeAllImages} from './Camera';
+import { renderTakePicture, deletePreviousImage, purgeUnsavedImages} from './Camera';
 import {renderEmmaAsks} from './EmmaAsks';
 import {renderAbout} from './About';
 import {renderWelcome} from './Welcome';
@@ -123,7 +123,7 @@ const checkValidDate = (dateStr) => {   //YYYY-MM-DD format
   let dash1 = dateStr.charAt(4);
   let month = /\d{2}/.test(dateStr.substring(5,7)) ? parseInt(dateStr.substring(5,7), 10) : "not a number";
   let dash2 = dateStr.charAt(7);
-  let day = /\d{2}/.test(dateStr.substring(5,7)) ? parseInt(dateStr.substring(8), 10) : "not a number";
+  let day = /\d{2}/.test(dateStr.substring(8)) ? parseInt(dateStr.substring(8), 10) : "not a number";
   if (dash1 !== "-" || dash2 !== "-" || year == "not a number" || month == "not a number" || day == "not a number" ){ return false; }
   if (day < 1 || month < 1){ return false; }
   if (day > 31 || month > 12 || ([4, 6, 9, 11].indexOf(month) > -1 && day > 30)){ return false; }
@@ -309,14 +309,20 @@ class App extends Component {
               });
               if (!didUpdateList) { listToUpdate.push({[stateToRealm[primaryStateKey]]: this.state[data.root][primaryStateKey]}); }
               objectToSave[data.what] = listToUpdate; 
+              objectToSave['whose'] = patient;
             } 
             realm.create('User', objectToSave, !newPatient);
             break;
           case 'delete':
             if (data.what == 'profile') { 
-              let medlist = this.state.realm.objects('User').filtered(`name='${data.which}'`)[0].medlist; 
+              let medlist = [...this.state.realm.objects('User').filtered(`name='${data.which}'`)[0].medlist]; 
               let imageList = medlist.map((item)=>{ return item.imageLocation; });
               imageList.forEach((imageURI)=>{ deletePreviousImage(imageURI); });
+              medlist.forEach((med)=>{ realm.delete(med); });
+              let conditionList = [...this.state.realm.objects('User').filtered(`name='${data.which}'`)[0].conditions];
+              let allergyList = [...this.state.realm.objects('User').filtered(`name='${data.which}'`)[0].allergies];
+              conditionList.forEach((condition)=>{ realm.delete(condition); });
+              allergyList.forEach((allergy)=>{ realm.delete(allergy); });
               realm.delete(realm.objects('User').filtered(`name='${data.which}'`)); 
             }
             else { 
@@ -324,8 +330,9 @@ class App extends Component {
               let index;
               list.forEach((item, i)=>{ if(item.name == data.which || item.tradeName == data.which){ index = i; } });
               if (data.what == 'medlist') { deletePreviousImage(list[index].imageLocation); }
-              list.splice(index, 1);
+              let removedItem = list.splice(index, 1);
               realm.create('User', {name: data.whose, [data.what]: list}, true);
+              realm.delete(removedItem[0]);
             }
             break;
           case 'direct save':
@@ -350,11 +357,11 @@ class App extends Component {
         {renderEmmaAsks(this.state, this.updateState)}
         {renderAbout(this.state)}
         {renderWelcome(this.state, this.updateState)}
-        {['home', 'welcome'].indexOf(this.state.screen) == -1 ? <BarButton color='rgba(0, 155, 95, 1)' title="Home" onPress={()=>{this.updateState('by path and value', {path: 'screen', value: 'home'})}} /> : null } 
+        {['home', 'welcome', 'takePicture'].indexOf(this.state.screen) == -1 ? <BarButton color='rgba(0, 155, 95, 1)' title="Home" onPress={()=>{this.updateState('by path and value', {path: 'screen', value: 'home'})}} /> : null } 
         {this.state.screen == 'home' ? <BarButton title='Update' onPress={()=>{ updateCompendium({updateRealm: this.updateRealm, state: this.state, updateState: this.updateState}); }} /> : null}
         {this.state.screen == 'home' ? <BarButton title='About Emma' onPress={()=>{ this.updateState('by path and value', {path: 'screen', value: 'about'}) }} /> : null}
         {/*<Button title='Console.log Compendium' onPress={()=>{console.log(this.state.realm.objects('Compendium'))}} />*/}
-        {/*<Button title='Purge images' onPress={()=>{purgeAllImages();}} />*/}
+        {/*<Button title='Purge unsaved images' onPress={()=>{purgeUnsavedImages(this.state.realm.objects('Medication').map((drug)=>{ if(drug.imageLocation){ return drug.imageLocation; } }));}} />*/}
         {/*<Button title='Welcome' onPress={()=>{this.setState({screen: 'welcome'})}} />*/}
       </ScrollView>
       </View>

@@ -61,9 +61,10 @@ export const deletePreviousImage = (oldImagePath) => {
     }
 }
   
-export const purgeAllImages = () => {
+export const purgeUnsavedImages = (savedImageLocations) => {
     const path = 'data/user/0/com.emma/cache/Camera';
+    console.log(`savedimageLocations: ${savedImageLocations}`);
     RNFS.readDir(path).then((result) => {
-        result.forEach((item)=>{  deletePreviousImage(item.path); });
-    });
+        result.forEach((item)=>{ console.log(`item.path: ${item.path}`); if(savedImageLocations.indexOf('file://'+item.path) == -1 ) { deletePreviousImage(item.path); } });
+    }).catch((error)=>{ console.log("Folder doesn't exist yet"); });
 }

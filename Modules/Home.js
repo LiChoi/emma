@@ -2,6 +2,7 @@ import React from 'react';
 import { Text, View } from 'react-native';
 import {BarButton} from './Common';
 import {styles} from './Styles';
+import {purgeUnsavedImages} from './Camera';
 
 export const renderHome = (state, updateState) => {
     if (state.screen == 'home'){
@@ -29,6 +30,7 @@ export const loadProfiles = (state, updateState) => {
                                     title={user.name} 
                                     onPress={()=>{
                                         clearPreviousProfileState(updateState);
+                                        purgeUnsavedImages(state.realm.objects('Medication').map((drug)=>{ if(drug.imageLocation){ return drug.imageLocation; } }));
                                         updateState('by path and value', {path: 'screen', value: 'profile'}); updateState('by path and value', {path: 'profileComponent.currentProfile', value: user.name});
                                     }} 
                                 />

@@ -32,7 +32,7 @@ export const getList = (data) => {
 export const generateSuggestedList = (data) => {
   //Requres data.input (what the input is), data.list (the list from which to pull suggestions)
   let regx = new RegExp(data.input, 'ig'); //For literal match of partial search term
-  let index = data.input.indexOf('-');
+  let index = data.input.indexOf(data.input.match(/[\-\s]/) ? data.input.match(/[\-\s]/)[0] : "-");  //indexOf('-'); 
   let inputIgnoreTag = data.input.slice(index + 1);
   let regx2 = new RegExp(inputIgnoreTag, 'ig'); //For ignore tag and match partial search term
   let letters = inputIgnoreTag.toLowerCase().split(""); //For fuzzy matching (ignoring tag) of full search term
@@ -45,7 +45,7 @@ export const generateSuggestedList = (data) => {
           let index = item.indexOf('-');
           let itemNoTag = item.toLowerCase().slice(index + 1); 
           letters.forEach((letter, i)=>{
-              if (itemNoTag.charAt(i-1) == letter || itemNoTag.charAt(i) == letter || itemNoTag.charAt(i+1) == letter){ 
+            if ([itemNoTag.charAt(i-1), itemNoTag.charAt(i), itemNoTag.charAt(i+1), item.toLowerCase().charAt(i-1), item.toLowerCase().charAt(i), item.toLowerCase().charAt(i+1)].indexOf(letter) !== -1){ 
                   fuzzyMatchCount++; 
               } 
           });
