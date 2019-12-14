@@ -1,7 +1,7 @@
 
 export const PrepareReport = (profile, compendium, medicalTerms) => {
     let DTPs = CheckForInteractions(profile.medlist, compendium); //Returns array of {drug1: string, drug2: string, tag: tagObject}
-    let allergies = CheckForAllergies(profile.allergies, profile.medlist, compendium);
+    let allergies = CheckForAllergies2(profile.allergies, profile.medlist, compendium);
     DTPs = allergies.length > 0 ? DTPs.concat(allergies) : DTPs;
     let contraindications = CheckForContraindications(profile, compendium, medicalTerms);
     DTPs = contraindications.length > 0 ? DTPs.concat(contraindications) : DTPs;
@@ -68,6 +68,34 @@ const CheckForAllergies = (allergies, medlist, compendium) => {
             ){
                 allergiesFound.push(`Taking ${drug.tradeName} when allergic to ${allergy.name}. Potential cross-allergy. ${allergy.details}`);
             } 
+        });
+    });
+    return allergiesFound;
+}
+
+const CheckForAllergies2 = (allergies, medlist, compendium) => {
+    let allergyCompendiumEntries = allergies.map((allergy)=>{
+        let compendiumEntry = FindCompendiumEntry(allergy.name, compendium);
+        compendiumEntry = compendiumEntry ? {...compendiumEntry} : { chemicalName: "?", tradeNames: ["?"], class: "?", crossAllergies: ["?"], tags: [allergy.name] }
+        compendiumEntry.tags = [...compendiumEntry.tags, compendiumEntry.chemicalName, ...compendiumEntry.tradeNames, compendiumEntry.class, ...compendiumEntry.crossAllergies];
+        compendiumEntry.listedAllergy = allergy.name;
+        compendiumEntry.listedAllergyDetails = allergy.details;
+        return compendiumEntry;
+    });
+    let drugList = [];
+    medlist.forEach((drug)=>{
+        let foundMatch = FindCompendiumEntry(drug.tradeName, compendium);
+        if (foundMatch) { foundMatch = {...foundMatch}; foundMatch.listedDrug = drug.tradeName; } 
+        else { foundMatch = {listedDrug: drug.tradeName, chemicalName: "??", class: "??", tradeNames: ["??"], crossAllergies: ["??"], tags: [drug.tradeName]}; }
+        foundMatch.tags = [...foundMatch.tags, foundMatch.listedDrug, foundMatch.chemicalName, foundMatch.class, ...foundMatch.crossAllergies, ...foundMatch.tradeNames];
+        drugList.push(foundMatch);
+    });
+    let allergiesFound = [];
+    drugList.forEach((drug)=>{
+        allergyCompendiumEntries.forEach((allergy)=>{
+            for (let i = 0; i<allergy.tags.length; i++) {
+                if (drug.tags.indexOf(allergy.tags[i]) !== -1 ) { allergiesFound.push(`Taking ${drug.listedDrug} when allergic to ${allergy.listedAllergy}. Potential cross-allergy. ${allergy.listedAllergyDetails}`); i = allergy.tags.length; }
+            }
         });
     });
     return allergiesFound;
