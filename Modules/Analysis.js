@@ -9,7 +9,7 @@ export const PrepareReport = (profile, compendium, medicalTerms) => {
 }
 
 const CheckForInteractions = (medlist, compendium) => {
-    //For each drug in medlist, get its corresponding Compendium entry, put into array
+    //For each drug in medlist, get its corresponding Compendium entry, put into array. If no entry found, create a dummy entry
     let drugs = [];
     medlist.forEach((drug)=>{
         let foundMatch = FindCompendiumEntry(drug.tradeName, compendium);
@@ -17,17 +17,24 @@ const CheckForInteractions = (medlist, compendium) => {
         else { foundMatch = {tradeName: drug.tradeName, chemicalName: drug.tradeName, class: "I don't know", interactionTags: ["Unknown"], tags: ['Unknown']}; drugs.push(foundMatch); } //If no corresponding entry, create an entry with dummy values and assume chemicalName=tradeName
     });
     let DTPs = [];
-    //Iterate over array of matching drug entries 
+    //For each drug(n), check drug(n)'s interaction tags against drug(n+1, n+2, n+3...) 
     drugs.forEach((drug, index)=>{
-        //Within each loop, loop again over the remaining entries to check every possible pair of drugs
         for (let i = index + 1 ; i < drugs.length ; i++){
-            //For each pair, loop across the first drug's interaction tags
+            let interactionFound = false;
             drug.interactionTags.forEach((tag)=>{
-                //If a tag matches the drug being checked, then push the relevant information into the DTP (drug-therapy-problem) array
                 if ( tag.tag == drugs[i].class || tag.tag == drugs[i].chemicalName || drugs[i].tags.indexOf(tag.tag) !== -1 ) {
                     DTPs.push(`Taking ${drug.tradeName} and ${drugs[i].tradeName} together. ${tag.effect}`);
-                }
+                    interactionFound = true;
+                } 
             });
+            //If Drug(n) doesn't list Drug(i) as interaction, but Drug(i) lists Drug(n) as interaction, then need to catch this by checking drug(i)'s interaction tags against drug(n)
+            if (!interactionFound) { 
+                drugs[i].interactionTags.forEach((drugBTag)=>{
+                    if ( drugBTag.tag == drug.class || drugBTag.tag == drug.chemicalName || drug.tags.indexOf(drugBTag.tag) !== -1 ) {
+                        DTPs.push(`Taking ${drug.tradeName} and ${drugs[i].tradeName} together. ${drugBTag.effect}`);
+                    }
+                })
+            }
         }
     });
     return DTPs;
