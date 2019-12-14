@@ -5,11 +5,13 @@ Then, in the terminal, while inside Emma folder, run this command:  react-native
 
 To install the release version of app on android, first generate a keystore (only needs to be done once). Then you must create the bundle.
 To create bundle, change directory to android folder: cd android 
-Then run: ./gradlew bundleRelease
+Then run**: ./gradlew bundleRelease
+**Note: might be necessary to first delete old build by running: ./gradlew clean 
 The generated AAB can be found under android/app/build/outputs/bundle/release/app.aab, and is ready to be uploaded to Google Play.
 For more details, see https://facebook.github.io/react-native/docs/signed-apk-android 
 Delete any current versions of the app on your phone. 
-Finally, to install onto your phone, run: react-native run-android --variant=release
+Finally, to install onto your phone, return to emma directory with: cd ..
+Then run: react-native run-android --variant=release
 If you want to switch back to debugging, delete the installed release version from phone, then run the usual react-native run-android
 
 Note: Android/gradle.properties has been put into gitignore as this file now contains the store keys and passwords.
