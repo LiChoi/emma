@@ -19,7 +19,7 @@ export const renderEmmaAsks = (state, updateState) => {
                             <Text></Text>
                         </View>
                     );
-                }) : <View style={styles.messageContainer} ><Text style={styles.messageText} >Emma can't think of any questions.</Text></View>}
+                }) : <View style={styles.messageContainer} ><Text style={styles.messageText} >Emma can't think of any questions.{'\n\n'}Also, don't forget to press the 'Update' button on the home screen to update Emma's knowledge.{'\n\n'} And please don't spam the update button. Once a month is good;)</Text></View>}
                 <Text></Text>
                 <BarButton title='Email your medical provider' onPress={()=>{ 
                     handleEmail(

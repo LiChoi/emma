@@ -14,7 +14,7 @@ export const renderMedlist = (state, updateState) => {
             state.realm.objects('User').filtered(`name='${state.profileComponent.currentProfile}'`)[0].medlist.map((medication, i)=>{
               return (
                 <View style={styles.border} key={medication.tradeName + i}>
-                  <Medication state={state} updateState={updateState} medication={medication} />
+                  <Medication state={state} updateState={updateState} medication={medication} index={i} />
                 </View>
               );
             })
@@ -34,14 +34,14 @@ export const renderMedlist = (state, updateState) => {
     }
   
     toggleExpand() {
-      this.props.state.render[this.props.medication.tradeName] ? this.props.updateState('by path and value', {path: `render.${this.props.medication.tradeName}`, value: false}) : this.props.updateState('by path and value', {path: `render.${this.props.medication.tradeName}`, value: true});
+      this.props.state.render[this.props.medication.tradeName.replace(/\./g, '') + this.props.index] ? this.props.updateState('by path and value', {path: `render.${this.props.medication.tradeName.replace(/\./g, '') +this.props.index}`, value: false}) : this.props.updateState('by path and value', {path: `render.${this.props.medication.tradeName.replace(/\./g, '') +this.props.index}`, value: true});
     }
   
     render() {
       return (
         <View>
           <BarButton title={this.props.medication.tradeName} onPress={ ()=>{ this.toggleExpand() }} />
-          { this.props.state.render[this.props.medication.tradeName] ? toggleEditMedication(this.props.state, this.props.updateState, this.props.medication) : null }
+          { this.props.state.render[this.props.medication.tradeName.replace(/\./g, '') +this.props.index] ? toggleEditMedication(this.props.state, this.props.updateState, this.props.medication) : null }
         </View>
       );
     }
