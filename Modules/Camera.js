@@ -62,7 +62,7 @@ export const deletePreviousImage = (oldImagePath) => {
 }
   
 export const purgeUnsavedImages = (savedImageLocations) => {
-    const path = 'data/user/0/com.emma/cache/Camera';
+    const path = 'data/user/0/com.emma20191215/cache/Camera';
     console.log(`savedimageLocations: ${savedImageLocations}`);
     RNFS.readDir(path).then((result) => {
         result.forEach((item)=>{ console.log(`item.path: ${item.path}`); if(savedImageLocations.indexOf('file://'+item.path) == -1 ) { deletePreviousImage(item.path); } });

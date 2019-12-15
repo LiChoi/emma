@@ -16,7 +16,27 @@ If you want to switch back to debugging, delete the installed release version fr
 
 Note: Android/gradle.properties has been put into gitignore as this file now contains the store keys and passwords.
 
+To upload to Google Play Store,
+-Had to go into android\app\build.gradle and modify this: 
 
+buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+        }
+        release {
+            // Caution! In production, you need to generate your own keystore file.
+            // see https://facebook.github.io/react-native/docs/signed-apk-android.
+            signingConfig signingConfigs.release
+            //signingConfig signingConfigs.debug  //Get rid of the debug or else Google play will say can't upload with debug signing 
+            minifyEnabled enableProguardInReleaseBuilds
+            proguardFiles getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"
+        }
+    }
+
+-Also, APK package name must be unique so might need to change it. Go to:  android\app\src\main\AndroidManifest.xml
+Then, changed:  <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.emma">
+To: <manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.emma20191215">
+do search of entire project for com.emma and replace with com.emma20191215
 
 Notes for setting up the dev environment:
 

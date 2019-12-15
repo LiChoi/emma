@@ -1,4 +1,4 @@
-package com.emma;
+package com.emma20191215;
 
 import com.facebook.react.ReactActivity;
 
